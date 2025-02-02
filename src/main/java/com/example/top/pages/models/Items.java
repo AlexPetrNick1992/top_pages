@@ -1,60 +1,39 @@
 package com.example.top.pages.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
+@Data
+@NoArgsConstructor
 @Table(name="item")
 public class Items {
+
     @Id
-    private String id;
+    private UUID id;
+
+    @Column(name="name")
     private String name;
-    private String desc;
+    private String description;
 
     @OneToMany(mappedBy = "item")
     private Set<Rate> rate;
 
-    public Items(String id, String name, String desc, Set<Rate> rate_attr) {
+    public Items(UUID id, String name, String desc, Set<Rate> rate, Category category) {
         this.id = id;
         this.name = name;
-        this.desc = desc;
-        this.rate = rate_attr;
+        this.description = desc;
+        this.rate = rate;
+        this.category = category;
     }
 
-    public Items() { }
+    @OneToOne
+    @JoinColumn(name = "category")
+    private Category category;
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public Set<Rate> getRate() {
-        return rate;
-    }
-
-    public void setRate(Set<Rate> rate_attr) {
-        this.rate = rate_attr;
-    }
 }

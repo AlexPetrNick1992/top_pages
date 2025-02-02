@@ -2,9 +2,7 @@ package com.example.top.pages.controller;
 
 import com.example.top.pages.models.Items;
 import com.example.top.pages.service.ItemsService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,5 +20,10 @@ public class ItemsController {
     @GetMapping
     public List<Items> getItems() {
         return itemsService.getItemsList();
+    }
+
+    @PostMapping
+    public Items createItems(@RequestBody Items items) {
+        return itemsService.createItems(items);
     }
 }
