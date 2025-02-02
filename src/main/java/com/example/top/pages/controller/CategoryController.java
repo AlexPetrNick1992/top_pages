@@ -5,6 +5,7 @@ import com.example.top.pages.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path="api/category")
@@ -23,7 +24,7 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    public Category getCategoryByUUID(@PathVariable String id) {
+    public Category getCategoryByUUID(@PathVariable UUID id) {
         return categoryService.getCategoryByUUID(id);
     }
 

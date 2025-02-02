@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CategoryService {
@@ -20,7 +21,7 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public Category getCategoryByUUID (String id) {
+    public Category getCategoryByUUID (UUID id) {
         Optional<Category> category = findCategoryByUUID(id);
         if (category.isEmpty()) {
             throw new IllegalStateException("Не найдена категория");
@@ -29,7 +30,7 @@ public class CategoryService {
         }
     }
 
-    public Optional<Category> findCategoryByUUID (String id) {
+    public Optional<Category> findCategoryByUUID (UUID id) {
         return categoryRepository.findByUUID(id);
     }
 
