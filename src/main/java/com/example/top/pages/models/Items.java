@@ -1,6 +1,8 @@
 package com.example.top.pages.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +12,7 @@ import java.util.UUID;
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name="item")
 public class Items {
 
@@ -23,17 +26,9 @@ public class Items {
     @OneToMany(mappedBy = "item")
     private Set<Rate> rate;
 
-    public Items(UUID id, String name, String desc, Set<Rate> rate, Category category) {
-        this.id = id;
-        this.name = name;
-        this.description = desc;
-        this.rate = rate;
-        this.category = category;
-    }
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "category")
+    @JsonBackReference
     private Category category;
-
 
 }

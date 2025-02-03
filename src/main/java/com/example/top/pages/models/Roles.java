@@ -5,24 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="category", schema="public")
-public class Category {
+@Table(name="roles")
+public class Roles {
+
     @Id
-    private UUID id;
-
-    @Column(name = "name")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
     private String name;
-    @Column(name = "description")
-    private String description;
 
-    public Category(UUID id) {
+    public Roles(int id) {
         this.id = id;
     }
-
 }
