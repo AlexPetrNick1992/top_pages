@@ -3,23 +3,19 @@ package com.example.top.pages.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenUtils {
@@ -29,7 +25,7 @@ public class JwtTokenUtils {
     @Value("${jwt.lifetime}")
     private Duration lifetime;
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -54,18 +50,20 @@ public class JwtTokenUtils {
 
     private Claims getAllClaimFromToken(String token) {
         Claims testClaim = Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseEncryptedClaims(token)
+                .parseSignedClaims(token.strip())
                 .getPayload();
         System.out.println(testClaim.toString());
         return testClaim;
     }
 
-    public String getUsernameFromToken(String token) {
+    public String getEmailFromToken(String token) {
         return getAllClaimFromToken(token).getSubject();
     }
 
     public List<String> getRolesFromToken(String token) {
+        System.out.println(getAllClaimFromToken(token).get("roles"));
         return getAllClaimFromToken(token).get("roles", List.class);
     }
 }

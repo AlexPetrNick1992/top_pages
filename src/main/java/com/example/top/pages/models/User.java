@@ -1,14 +1,16 @@
 package com.example.top.pages.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -18,16 +20,28 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     private String name;
     private String email;
+    @JsonIgnore
     @Column(name = "password")
     private String password;
+    @JsonProperty("birthday")
     @Column(name = "birthday")
     private LocalDate dateOfBirth;
 
-    @ManyToMany
+    public User(String email, String password, Collection<Roles> roles) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.email = email;
+        this.password = password;
+        this.name = String.format("User%d", System.currentTimeMillis());
+        this.roles = roles;
+    }
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),

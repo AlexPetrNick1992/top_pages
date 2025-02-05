@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.Collection;
 import java.util.Set;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Table(name = "pages")
 public class Pages {
     @Id
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     private String name;
     private String desc;

@@ -12,7 +12,7 @@ INSERT INTO public.roles ("name") VALUES('ROLE_GUEST');
 
 CREATE TABLE public.users (
 	"name" varchar NOT NULL,
-	birthday date NOT NULL,
+	birthday date NULL,
 	email varchar NOT NULL,
 	"password" varchar NOT NULL,
 	id varchar NOT NULL,
@@ -20,8 +20,8 @@ CREATE TABLE public.users (
 	CONSTRAINT users_unique UNIQUE (email)
 );
 
-INSERT INTO public.users (name,birthday,email,"password",id)
-VALUES ('admin','1991-06-01','admin@admin.admin', '12345', 'e7950adc-d438-41c2-aa19-4eb5470543d4')
+INSERT INTO public.users (name,email,"password",id)
+VALUES ('admin','admin@admin.admin','12345','e7950adc-d438-41c2-aa19-4eb5470543d4')
 
 CREATE TABLE public.users_roles (
 	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
