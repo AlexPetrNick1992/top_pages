@@ -20,7 +20,6 @@ import java.util.*;
 public class User {
 
     @Id
-    @GeneratedValue
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     private String name;
@@ -41,7 +40,7 @@ public class User {
         this.roles = roles;
     }
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),

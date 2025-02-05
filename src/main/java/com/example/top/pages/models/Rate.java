@@ -27,8 +27,9 @@ public class Rate {
     @JsonBackReference
     private Items item;
 
-    public Rate(UUID id, String comment, Items item) {
-        this.id = id;
+    public Rate(String comment, Items item) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
         this.comment = comment;
         this.item = item;
     }

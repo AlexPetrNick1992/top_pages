@@ -13,4 +13,6 @@ public class RateService {
         this.rateRepository = rateRepository;
     }
     public List<Rate> getRateList() {return rateRepository.findAll();}
+
+
 }

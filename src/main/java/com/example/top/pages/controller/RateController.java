@@ -11,7 +11,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping(path="api/rate")
+@RequestMapping(path="api/v1/rate")
 public class RateController {
 
     private final RateService rateService;
