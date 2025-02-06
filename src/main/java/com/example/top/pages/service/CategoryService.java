@@ -37,10 +37,8 @@ public class CategoryService {
     public Category createCategory(Category category) {
         Optional<Category> categoryFind = categoryRepository.findByUUID(category.getId());
         if (categoryFind.isPresent()) {
-            System.out.println("Find Category");
             throw new IllegalStateException("User has exists");
         }
-        System.out.println(category.toString());
         return categoryRepository.save(category);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.top.pages.service.impl;
 
-import com.example.top.pages.exceptions.AppException;
+import com.example.top.pages.payload.response.AppResponse;
 import com.example.top.pages.payload.request.JwtTokenRequest;
 import com.example.top.pages.payload.request.RegistrationUser;
 import com.example.top.pages.payload.response.JwtResponse;
@@ -12,9 +12,6 @@ import com.example.top.pages.utils.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -61,7 +58,7 @@ public class UserServiceImpl implements UserDetailsService {
 
     public ResponseEntity<?> registration(RegistrationUser registrationUser) {
         if (findByEmail(registrationUser.getEmail()).isPresent()) {
-            return new ResponseEntity<>(new AppException(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким email уже создан"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким email уже создан"), HttpStatus.BAD_REQUEST);
         }
         User user = new User(
                 registrationUser.getEmail(),

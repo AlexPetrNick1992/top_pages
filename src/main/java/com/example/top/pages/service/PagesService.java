@@ -18,6 +18,8 @@ public class PagesService {
     private final PagesRepository pagesRepository;
 
     public List<Pages> getPagesList() {
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println(pagesRepository.findAll());
         return pagesRepository.findAll();
     }
 

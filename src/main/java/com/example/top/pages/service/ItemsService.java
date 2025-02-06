@@ -25,18 +25,14 @@ public class ItemsService {
     }
 
     public Items createItems(Items items) {
-        System.out.println(items.toString());
-        System.out.println(items.getId());
-        Optional<Items> itemsFind = itemsRepository.findByUUID(items.getId());
+        Optional<Items> itemsFind = itemsRepository.findByStringUUID(String.valueOf(items.getId()));
         if (itemsFind.isPresent()) {
             throw new IllegalStateException("Items has exists");
         }
-        System.out.println(items.toString());
         Optional<Category> categoryFind = categoryService.findCategoryByUUID(items.getCategory().getId());
         if (categoryFind.isEmpty()) {
             throw new IllegalStateException("Category hasn't exists");
         } else {
-            System.out.println(categoryFind.get());
             items.setCategory(categoryFind.get());
         }
         return itemsRepository.save(items);

@@ -1,14 +1,14 @@
 
 
 CREATE TABLE public.roles (
-	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
+	id int8 GENERATED ALWAYS AS IDENTITY( INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1 NO CYCLE) NOT NULL,
 	"name" varchar NOT NULL,
 	CONSTRAINT roles_pk PRIMARY KEY (id)
 );
 
 INSERT INTO public.roles ("name") VALUES('ROLE_USER');
 INSERT INTO public.roles ("name") VALUES('ROLE_ADMIN');
-INSERT INTO public.roles ("name") VALUES('ROLE_GUEST');
+INSERT INTO public.roles ("name") VALUES('ROLE_APPROVED');
 
 CREATE TABLE public.users (
 	"name" varchar NOT NULL,
@@ -55,8 +55,12 @@ CREATE TABLE public.rate (
 	id varchar NOT NULL,
 	"comment" varchar NOT NULL,
 	item varchar NOT NULL,
+	user_id varchar NOT NULL,
+	ispositive bool NULL,
+	isapproved bool NULL,
 	CONSTRAINT rate_unique UNIQUE (id),
-	CONSTRAINT rate_item_fk FOREIGN KEY (item) REFERENCES public.item(id) ON DELETE CASCADE ON UPDATE CASCADE
+	CONSTRAINT rate_item_fk FOREIGN KEY (item) REFERENCES public.item(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT rate_users_fk FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 
 CREATE TABLE public.pages (

@@ -21,7 +21,8 @@ public class Pages {
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
     private String name;
-    private String desc;
+    private String description;
+
     @ManyToMany
     @JoinTable(
             name = "pages_items",

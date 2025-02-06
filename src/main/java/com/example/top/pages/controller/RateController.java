@@ -1,23 +1,26 @@
 package com.example.top.pages.controller;
 
-import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.request.RateAction;
 import com.example.top.pages.service.RateService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@Data
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(path="api/v1/rate")
 public class RateController {
-
     private final RateService rateService;
 
-    public RateController(RateService rateService) {
-        this.rateService = rateService;
+    @PostMapping("/action")
+    public ResponseEntity<?> rateToItem(@RequestBody RateAction rateAction) {
+        System.out.println(rateAction);
+        return rateService.rateToItem(rateAction);
     }
 
     @GetMapping

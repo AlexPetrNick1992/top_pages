@@ -18,7 +18,6 @@ public class PagesController {
 
     @GetMapping
     public List<Pages> listPages() {
-
         return pagesService.getPagesList();
     }
 }

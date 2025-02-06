@@ -1,9 +1,8 @@
 package com.example.top.pages.controller;
 
-import com.example.top.pages.exceptions.AppException;
+import com.example.top.pages.payload.response.AppResponse;
 import com.example.top.pages.payload.request.JwtTokenRequest;
 import com.example.top.pages.payload.request.RegistrationUser;
-import com.example.top.pages.repository.RolesRepository;
 import com.example.top.pages.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,7 +30,7 @@ public class AuthController {
             ));
         } catch (
                 BadCredentialsException e) {
-            return new ResponseEntity<>(new AppException(HttpStatus.UNAUTHORIZED.value(), "Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(new AppResponse(HttpStatus.UNAUTHORIZED.value(), "Неправильный логин или пароль"), HttpStatus.UNAUTHORIZED);
         }
         return userService.authorization(jwtTokenRequest);
     }

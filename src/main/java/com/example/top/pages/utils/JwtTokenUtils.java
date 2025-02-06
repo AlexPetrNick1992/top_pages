@@ -54,7 +54,6 @@ public class JwtTokenUtils {
                 .build()
                 .parseSignedClaims(token.strip())
                 .getPayload();
-        System.out.println(testClaim.toString());
         return testClaim;
     }
 
@@ -63,7 +62,6 @@ public class JwtTokenUtils {
     }
 
     public List<String> getRolesFromToken(String token) {
-        System.out.println(getAllClaimFromToken(token).get("roles"));
         return getAllClaimFromToken(token).get("roles", List.class);
     }
 }
