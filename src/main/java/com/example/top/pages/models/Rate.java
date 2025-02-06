@@ -23,6 +23,12 @@ public class Rate {
     private UUID id;
     private String comment;
 
+    @Column(name="ispositive")
+    private boolean isPositive;
+
+    @Column(name="isapproved")
+    private boolean isApproved;
+
     @ManyToOne()
     @JoinColumn(name = "item")
     @JsonBackReference
@@ -33,12 +39,14 @@ public class Rate {
     @JsonBackReference
     private User user;
 
-    public Rate(Items item, User user, String comment) {
+    public Rate(Items item, User user, String comment, Boolean isApproved, Boolean isPositive) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.item = item;
         this.comment = comment;
         this.user = user;
+        this.isApproved = isApproved;
+        this.isPositive = isPositive;
     }
 
     public Rate(Items item, UUID id, String comment) {

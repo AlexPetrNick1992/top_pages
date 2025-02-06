@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class RateAction {
-    private String itemId;
+public class RateUpdate {
     private String comment;
-    private Boolean isPositive;
-
+    private boolean isPositive;
 }

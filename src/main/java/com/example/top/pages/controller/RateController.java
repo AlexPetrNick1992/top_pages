@@ -2,6 +2,7 @@ package com.example.top.pages.controller;
 
 import com.example.top.pages.models.Rate;
 import com.example.top.pages.payload.request.RateAction;
+import com.example.top.pages.payload.request.RateUpdate;
 import com.example.top.pages.service.RateService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +18,30 @@ import java.util.List;
 public class RateController {
     private final RateService rateService;
 
+    @GetMapping
+    public List<Rate> getListRatesForUser() {
+        return rateService.getListRatesForUser();
+    }
+
+    @GetMapping("/approve")
+    public ResponseEntity<?> approve(@RequestParam(required = true, name = "rate_id") String rateId) {
+        return rateService.approve(rateId);
+    }
+
     @PostMapping("/action")
     public ResponseEntity<?> rateToItem(@RequestBody RateAction rateAction) {
-        System.out.println(rateAction);
         return rateService.rateToItem(rateAction);
     }
 
-    @GetMapping
-    public List<Rate> getRate() {
-        return rateService.getRateList();
+    @PutMapping()
+    public ResponseEntity<?> updateRate(@RequestParam(required = true, name = "rate_id") String rateId
+            , @RequestBody RateUpdate comment) {
+        return rateService.updateRate(rateId, comment);
     }
 
-    @GetMapping(path = "/as")
-    public List<Rate> getItems() {
-        return rateService.getRateList();
+    @DeleteMapping()
+    public ResponseEntity<?> deleteRate(@RequestParam(required = true, name = "rate_id") String rateId) {
+        return rateService.deleteRate(rateId);
     }
+
 }
