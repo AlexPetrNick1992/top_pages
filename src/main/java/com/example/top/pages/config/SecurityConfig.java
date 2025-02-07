@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/rate").authenticated()
                         .requestMatchers("/api/v1/rate/approve").authenticated()
+                        .requestMatchers("api/v1/pages/create").authenticated()
                         .anyRequest().permitAll()
                 )
                 .sessionManagement((sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

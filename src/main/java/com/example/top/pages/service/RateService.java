@@ -31,7 +31,9 @@ public class RateService {
     private final UserRepository userRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
 
-    public List<Rate> getRateList() {return rateRepository.findAll();}
+    public List<Rate> getRateList() {
+        return rateRepository.findAll();
+    }
 
     public List<Rate> getListRatesForUser() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
@@ -44,10 +46,16 @@ public class RateService {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         Optional<Rate> rateEntity = rateRepository.getRateByUUID(rate_id);
-        if (rateEntity.isEmpty()) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);}
-        if (!roles.contains("ROLE_ADMIN")) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "User hasn't permission to approve this rate", null);}
+        if (rateEntity.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
+        }
+        if (!roles.contains("ROLE_ADMIN")) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "User hasn't permission to approve this rate", null);
+        }
         Rate rate = rateEntity.get();
-        if (rate.isApproved()) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This rate already is approved", null);}
+        if (rate.isApproved()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This rate already is approved", null);
+        }
         rate.setApproved(true);
         rateRepository.save(rate);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Rate %s successfully approved", rate_id), rate_id);
@@ -70,18 +78,15 @@ public class RateService {
         }
         rateRepository.delete(rate);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Rate %s successfully delete", rate_id), rate_id);
-
     }
 
-    public ResponseEntity<?> updateRate (String rate_id, RateUpdate comment) {
+    public ResponseEntity<?> updateRate(String rate_id, RateUpdate comment) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         String userContextEmail = contextUser.getPrincipal().toString();
-
-        if (comment.getComment() == null || comment.getComment().isEmpty()) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Comment hasn't be empty", null);}
-
         Optional<Rate> rateEntity = rateRepository.getRateByUUID(rate_id);
-        if (rateEntity.isEmpty()) { return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
+        if (rateEntity.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
         } else {
             /* Проверка ролей */
             Rate rate = rateEntity.get();
@@ -102,10 +107,6 @@ public class RateService {
         String userContextEmail = contextUser.getPrincipal().toString();
         User userItem = userRepository.findCheckedUserByEmail(userContextEmail);
         String userContextUUID = userItem.getId().toString();
-
-        /* Проверяем наличие Item */
-        if (tempItem.isEmpty()) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Item %s not found", rateAction.getItemId()), null);}
-
         Optional<Rate> rateEntity = rateRepository.getItemAndRateByUserAndItem(userContextUUID, String.valueOf(tempItem.get().getId()));
 
         /* Если существует - то нельзя повторно */
@@ -113,21 +114,16 @@ public class RateService {
             String username = rateEntity.get().getItem().getName();
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("User has rate on item %s", username), null);
         }
-        if (rateAction.getComment() == null || rateAction.getComment().isEmpty()) {return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Comment is empty", null);}
-        else {
-            /* Админ isApproved = true */
-            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
-
-            Rate rate = new Rate(
-                    tempItem.get(),
-                    userItem,
-                    rateAction.getComment(),
-                    isApproved,
-                    rateAction.getIsPositive()
-            );
-            System.out.println(rate);
-            rateRepository.save(rate);
-            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));
-        }
+        /* Админ isApproved = true */
+        Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
+        Rate rate = new Rate(
+                tempItem.get(),
+                userItem,
+                rateAction.getComment(),
+                isApproved,
+                rateAction.getIsPositive()
+        );
+        rateRepository.save(rate);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));
     }
 }

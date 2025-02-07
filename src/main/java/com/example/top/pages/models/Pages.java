@@ -8,7 +8,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -30,4 +29,8 @@ public class Pages {
             inverseJoinColumns = @JoinColumn(name = "items_id")
     )
     private Collection<Items> items;
+
+    @OneToOne
+    @JoinColumn(name = "category")
+    private Category category;
 }

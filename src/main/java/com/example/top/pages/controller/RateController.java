@@ -4,6 +4,7 @@ import com.example.top.pages.models.Rate;
 import com.example.top.pages.payload.request.RateAction;
 import com.example.top.pages.payload.request.RateUpdate;
 import com.example.top.pages.service.RateService;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,13 +30,13 @@ public class RateController {
     }
 
     @PostMapping("/action")
-    public ResponseEntity<?> rateToItem(@RequestBody RateAction rateAction) {
+    public ResponseEntity<?> rateToItem(@Valid @RequestBody RateAction rateAction) {
         return rateService.rateToItem(rateAction);
     }
 
     @PutMapping()
     public ResponseEntity<?> updateRate(@RequestParam(required = true, name = "rate_id") String rateId
-            , @RequestBody RateUpdate comment) {
+            , @Valid @RequestBody RateUpdate comment) {
         return rateService.updateRate(rateId, comment);
     }
 
