@@ -1,17 +1,17 @@
 package com.example.top.pages.payload.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @AllArgsConstructor
 public class RateAction {
-    @NotEmpty(message = "This field is required")
+    @JsonProperty("item_id")
+    @NotEmpty(message = "Field item_id is required")
     private String itemId;
-    @NotEmpty(message = "This field is required")
+    @NotEmpty(message = "Field comment is required")
     private String comment;
     private Boolean isPositive;
-
 }

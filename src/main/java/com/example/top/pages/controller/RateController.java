@@ -29,6 +29,11 @@ public class RateController {
         return rateService.approve(rateId);
     }
 
+    @GetMapping("/disprove")
+    public ResponseEntity<?> disprove(@RequestParam(required = true, name = "rate_id") String rateId) {
+        return rateService.disprove(rateId);
+    }
+
     @PostMapping("/action")
     public ResponseEntity<?> rateToItem(@Valid @RequestBody RateAction rateAction) {
         return rateService.rateToItem(rateAction);

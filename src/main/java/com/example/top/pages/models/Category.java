@@ -24,6 +24,19 @@ public class Category {
     @Column(name = "description")
     private String description;
 
+    public Category(String name, String description) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.name = name;
+        this.description = description;
+    }
+
+    public Category(String name) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.name = name;
+    }
+
     public Category(UUID id) {
         this.id = id;
     }

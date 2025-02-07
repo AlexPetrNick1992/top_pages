@@ -66,8 +66,9 @@ CREATE TABLE public.rate (
 CREATE TABLE public.pages (
 	id varchar NOT NULL,
 	"name" varchar NOT NULL,
-	"desc" varchar NULL,
+	description varchar NULL,
 	category varchar NOT NULL,
+	isapproved bool NULL,
 	CONSTRAINT pages_unique UNIQUE (id),
 	CONSTRAINT pages_unique_1 UNIQUE (name),
 	CONSTRAINT pages_categories_fk FOREIGN KEY (category) REFERENCES public.category(id) ON DELETE CASCADE ON UPDATE CASCADE

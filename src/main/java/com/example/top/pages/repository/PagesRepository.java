@@ -13,4 +13,6 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     Optional<Pages> findByUUID(UUID uuid);
     @Query(value = "select * from pages c where id = :uuid", nativeQuery = true)
     Optional<Pages> findByUUIDString(String uuid);
+    @Query(value = "select * from pages p where name = :name", nativeQuery = true)
+    Optional<Pages> getPagesByName(String name);
 }

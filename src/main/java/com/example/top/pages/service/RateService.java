@@ -43,14 +43,9 @@ public class RateService {
     }
 
     public ResponseEntity<?> approve(String rate_id) {
-        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
-        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         Optional<Rate> rateEntity = rateRepository.getRateByUUID(rate_id);
         if (rateEntity.isEmpty()) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
-        }
-        if (!roles.contains("ROLE_ADMIN")) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "User hasn't permission to approve this rate", null);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate %s not exists", rate_id);
         }
         Rate rate = rateEntity.get();
         if (rate.isApproved()) {
@@ -58,8 +53,21 @@ public class RateService {
         }
         rate.setApproved(true);
         rateRepository.save(rate);
-        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Rate %s successfully approved", rate_id), rate_id);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully approved", rate_id);
+    }
 
+    public ResponseEntity<?> disprove(String rate_id) {
+        Optional<Rate> rateEntity = rateRepository.getRateByUUID(rate_id);
+        if (rateEntity.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate not exists", rate_id);
+        }
+        Rate rate = rateEntity.get();
+        if (!rate.isApproved()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This rate already is disproved", null);
+        }
+        rate.setApproved(false);
+        rateRepository.save(rate);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully disprove", rate_id);
     }
 
     public ResponseEntity<?> deleteRate(String rate_id) {
@@ -69,7 +77,7 @@ public class RateService {
         String userContextEmail = contextUser.getPrincipal().toString();
 
         if (rateEntity.isEmpty()) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate not exists", rate_id);
         }
         Rate rate = rateEntity.get();
         /* Роли */
@@ -77,7 +85,7 @@ public class RateService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "User hasn't permission to delete this rate", null);
         }
         rateRepository.delete(rate);
-        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Rate %s successfully delete", rate_id), rate_id);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully delete", rate_id);
     }
 
     public ResponseEntity<?> updateRate(String rate_id, RateUpdate comment) {
@@ -86,7 +94,7 @@ public class RateService {
         String userContextEmail = contextUser.getPrincipal().toString();
         Optional<Rate> rateEntity = rateRepository.getRateByUUID(rate_id);
         if (rateEntity.isEmpty()) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Rate %s not exists", rate_id), null);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate not exists", rate_id);
         } else {
             /* Проверка ролей */
             Rate rate = rateEntity.get();
@@ -96,7 +104,7 @@ public class RateService {
             rate.setComment(comment.getComment());
             rate.setPositive(comment.isPositive());
             rateRepository.save(rate);
-            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Rate %s successfully update", rate_id), rate_id);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully update", rate_id);
         }
     }
 

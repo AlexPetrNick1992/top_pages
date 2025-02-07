@@ -32,4 +32,14 @@ public class PagesController {
     public ResponseEntity<?> createPages(@Valid @RequestBody PagesRequest pagesRequest) {
         return pagesService.createPages(pagesRequest);
     }
+
+    @GetMapping("/approve")
+    public ResponseEntity<?> approvePages(@RequestParam(required = true, name = "pages_id") String pageId) {
+        return pagesService.approvePages(pageId);
+    }
+
+    @GetMapping("/disprove")
+    public ResponseEntity<?> disprovePages(@RequestParam(required = true, name = "pages_id") String pageId) {
+        return pagesService.disprovePages(pageId);
+    }
 }

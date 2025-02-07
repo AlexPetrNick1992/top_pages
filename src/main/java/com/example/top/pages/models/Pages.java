@@ -21,6 +21,8 @@ public class Pages {
     private UUID id;
     private String name;
     private String description;
+    @Column(name = "isapproved")
+    private boolean isApproved;
 
     @ManyToMany
     @JoinTable(
@@ -30,7 +32,24 @@ public class Pages {
     )
     private Collection<Items> items;
 
-    @OneToOne
-    @JoinColumn(name = "category")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "category", referencedColumnName = "id")
     private Category category;
+
+    public Pages(Category category, boolean isApproved, String description, String name) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.category = category;
+        this.isApproved = isApproved;
+        this.description = description;
+        this.name = name;
+    }
+
+    public Pages(Category category, boolean isApproved, String name) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.category = category;
+        this.isApproved = isApproved;
+        this.name = name;
+    }
 }
