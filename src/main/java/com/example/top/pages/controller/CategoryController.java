@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(path="api/category")
+@RequestMapping(path="api/v1/category")
 public class CategoryController {
 
     private final CategoryService categoryService;
-
 
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;

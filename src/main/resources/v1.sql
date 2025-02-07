@@ -21,7 +21,7 @@ CREATE TABLE public.users (
 );
 
 INSERT INTO public.users (name,email,"password",id)
-VALUES ('admin','admin@admin.admin','12345','e7950adc-d438-41c2-aa19-4eb5470543d4')
+VALUES ('admin','admin@admin.admin','$2a$10$PjzqckvISEBy1DGTdkmWa./IFUrTtbBB4i9IYTKDjV7l3CDDPQNY2','e7950adc-d438-41c2-aa19-4eb5470543d4')
 
 CREATE TABLE public.users_roles (
 	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,

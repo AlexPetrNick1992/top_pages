@@ -1,10 +1,12 @@
 package com.example.top.pages.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Date;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class AppResponse {
     private final int status;
