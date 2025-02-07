@@ -25,13 +25,19 @@ public class RateController {
     }
 
     @GetMapping("/approve")
-    public ResponseEntity<?> approve(@RequestParam(required = true, name = "rate_id") String rateId) {
-        return rateService.approve(rateId);
+    public ResponseEntity<?> approve(
+            @RequestParam(required = true, name = "rate_id") String rateId,
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return rateService.approve(rateId, categoryId);
     }
 
     @GetMapping("/disprove")
-    public ResponseEntity<?> disprove(@RequestParam(required = true, name = "rate_id") String rateId) {
-        return rateService.disprove(rateId);
+    public ResponseEntity<?> disprove(
+            @RequestParam(required = true, name = "rate_id") String rateId,
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return rateService.disprove(rateId, categoryId);
     }
 
     @PostMapping("/action")
@@ -46,8 +52,11 @@ public class RateController {
     }
 
     @DeleteMapping()
-    public ResponseEntity<?> deleteRate(@RequestParam(required = true, name = "rate_id") String rateId) {
-        return rateService.deleteRate(rateId);
+    public ResponseEntity<?> deleteRate(
+            @RequestParam(required = true, name = "rate_id") String rateId,
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return rateService.deleteRate(rateId, categoryId);
     }
 
 }

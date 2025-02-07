@@ -24,7 +24,7 @@ public class Pages {
     @Column(name = "isapproved")
     private boolean isApproved;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "pages_items",
             joinColumns = @JoinColumn(name = "pages_id"),
@@ -32,7 +32,7 @@ public class Pages {
     )
     private Collection<Items> items;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "category", referencedColumnName = "id")
     private Category category;
 

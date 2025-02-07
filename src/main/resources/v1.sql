@@ -89,12 +89,3 @@ CREATE TABLE public.pages_items (
 	CONSTRAINT pages_items_item_fk FOREIGN KEY (items_id) REFERENCES public.item(id),
 	CONSTRAINT pages_items_pages_fk FOREIGN KEY (pages_id) REFERENCES public.pages(id)
 );
-
-CREATE TABLE public.rates_category (
-	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
-	rate_id varchar NOT NULL,
-	category_id varchar NOT NULL,
-	CONSTRAINT rates_category_pk PRIMARY KEY (id),
-	CONSTRAINT rates_category_rate_fk FOREIGN KEY (rate_id) REFERENCES public.rate(id) ON DELETE CASCADE ON UPDATE CASCADE,
-	CONSTRAINT rates_category_category_fk FOREIGN KEY (category_id) REFERENCES public.category(id) ON DELETE CASCADE ON UPDATE CASCADE
-);

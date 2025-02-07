@@ -10,5 +10,7 @@ import lombok.RequiredArgsConstructor;
 public class RateUpdate {
     @NotEmpty(message = "This field is required")
     private String comment;
+    @NotEmpty(message = "This field is required")
+    private String categoryId;
     private boolean isPositive;
 }

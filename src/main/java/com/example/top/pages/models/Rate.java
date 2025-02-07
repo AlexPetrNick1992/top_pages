@@ -6,9 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Collection;
 import java.util.UUID;
 
 @Entity
@@ -29,7 +31,7 @@ public class Rate {
     @Column(name="isapproved")
     private boolean isApproved;
 
-    @ManyToOne()
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "item")
     @JsonBackReference
     private Items item;
@@ -39,7 +41,12 @@ public class Rate {
     @JsonBackReference
     private User user;
 
-    public Rate(Items item, User user, String comment, Boolean isApproved, Boolean isPositive) {
+    @ManyToOne(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "category_id")
+    @JsonBackReference
+    private Category category;
+
+    public Rate(Items item, User user, String comment, Boolean isApproved, Boolean isPositive, Category category) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.item = item;
@@ -47,6 +54,7 @@ public class Rate {
         this.user = user;
         this.isApproved = isApproved;
         this.isPositive = isPositive;
+        this.category = category;
     }
 
     public Rate(Items item, UUID id, String comment) {

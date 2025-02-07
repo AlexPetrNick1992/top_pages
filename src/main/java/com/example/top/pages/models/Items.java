@@ -28,7 +28,7 @@ public class Items {
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
 
     public Items(String name, Collection<Category> category) {

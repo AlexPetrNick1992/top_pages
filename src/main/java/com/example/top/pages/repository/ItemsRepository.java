@@ -13,6 +13,9 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
     Optional<Items> findByStringUUID(String uuid);
 
     @Query(value = "select * from item c where id = :uuid", nativeQuery = true)
+    Items findByStringUUIDStrict(String uuid);
+
+    @Query(value = "select * from item c where id = :uuid", nativeQuery = true)
     Optional<Items> findByUUID(UUID uuid);
 
     @Query(value = "select * from item i where name = :name", nativeQuery = true)

@@ -13,5 +13,7 @@ public class RateAction {
     private String itemId;
     @NotEmpty(message = "Field comment is required")
     private String comment;
+    @NotEmpty(message = "Field comment is required")
+    private String categoryId;
     private Boolean isPositive;
 }
