@@ -15,4 +15,7 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
     @Query(value = "select * from item c where id = :uuid", nativeQuery = true)
     Optional<Items> findByUUID(UUID uuid);
 
+    @Query(value = "select * from item i where name = :name", nativeQuery = true)
+    Optional<Items> findByName(String name);
+
 }

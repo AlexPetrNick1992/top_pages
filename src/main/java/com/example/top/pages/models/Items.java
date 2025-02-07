@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,11 +28,23 @@ public class Items {
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "item" ,cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
     private List<Rate> rate;
 
-    @ManyToOne
-    @JoinColumn(name = "category")
-    private Category category;
+    public Items(String name, Collection<Category> category) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.name = name;
+        this.category = category;
+        this.description = "No description";
+    }
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "item_category",
+            joinColumns = @JoinColumn(name = "item_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Collection<Category> category;
 
 }

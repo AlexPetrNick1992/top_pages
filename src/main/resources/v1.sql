@@ -44,11 +44,18 @@ CREATE TABLE public.category (
 
 CREATE TABLE public.item (
 	id varchar NOT NULL,
-	"name" varchar NOT NULL,
+	name varchar NOT NULL,
 	description varchar NULL,
-	category varchar NOT NULL,
-	CONSTRAINT item_unique UNIQUE (id),
-	CONSTRAINT item_category_fk FOREIGN KEY (category) REFERENCES public.category(id)
+	CONSTRAINT item_unique UNIQUE (id)
+);
+
+CREATE TABLE public.item_category (
+	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
+	item_id varchar NOT NULL,
+	category_id varchar NOT NULL,
+	CONSTRAINT item_category_pk PRIMARY KEY (id),
+	CONSTRAINT item_category_category_fk FOREIGN KEY (category_id) REFERENCES public.category(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT item_category_item_fk FOREIGN KEY (item_id) REFERENCES public.item(id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.rate (
@@ -81,4 +88,13 @@ CREATE TABLE public.pages_items (
 	CONSTRAINT pages_items_pk PRIMARY KEY (id),
 	CONSTRAINT pages_items_item_fk FOREIGN KEY (items_id) REFERENCES public.item(id),
 	CONSTRAINT pages_items_pages_fk FOREIGN KEY (pages_id) REFERENCES public.pages(id)
+);
+
+CREATE TABLE public.rates_category (
+	id int8 GENERATED ALWAYS AS IDENTITY NOT NULL,
+	rate_id varchar NOT NULL,
+	category_id varchar NOT NULL,
+	CONSTRAINT rates_category_pk PRIMARY KEY (id),
+	CONSTRAINT rates_category_rate_fk FOREIGN KEY (rate_id) REFERENCES public.rate(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT rates_category_category_fk FOREIGN KEY (category_id) REFERENCES public.category(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

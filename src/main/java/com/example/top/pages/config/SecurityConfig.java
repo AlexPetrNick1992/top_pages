@@ -4,6 +4,7 @@ import com.example.top.pages.service.impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -35,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/rate/disprove").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pages/approve").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pages/disprove").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/pages").hasRole("ADMIN")
                         .requestMatchers("api/v1/pages/create").authenticated()
                         .anyRequest().permitAll()
                 )

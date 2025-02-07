@@ -30,6 +30,17 @@ public class PagesService {
         return pagesRepository.findAll();
     }
 
+    public ResponseEntity<?> deletePages(String pagesId) {
+        Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pagesId);
+        if (pagesCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pagesId);
+        } else {
+            Pages page = pagesCheck.get();
+            pagesRepository.delete(page);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully deleted", String.valueOf(page.getId()));
+        }
+    }
+
     public ResponseEntity<?> approvePages(String pageId) {
         Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pageId);
         if (pagesCheck.isEmpty()) {
@@ -56,10 +67,16 @@ public class PagesService {
         }
     }
 
-    public ResponseEntity<?> getPageByUUID(String id) {
-        Optional<Pages> pages = pagesRepository.findByUUIDString(id);
+    public ResponseEntity<?> getSinglePage(String pages_id, String pages_name) {
+        Optional<Pages> pages;
+        if (pages_id == null && pages_name == null) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Request need pages_id or pages_name", null);
+        }
+        if (pages_id == null) {pages_id = "";}
+        if (pages_id.isEmpty()) {pages = pagesRepository.getPagesByName(pages_name);
+        } else { pages = pagesRepository.findByUUIDString(pages_id);}
         if (pages.isEmpty()) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Pages %s not exists", id), null);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
         } else {
             return ResponseEntity.ok(new ResponseSinglePages(pages.get()));
         }

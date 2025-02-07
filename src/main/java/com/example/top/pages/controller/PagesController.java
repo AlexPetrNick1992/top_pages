@@ -17,10 +17,17 @@ import java.util.List;
 public class PagesController {
     private final PagesService pagesService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getPagesById(@PathVariable String id) {
-        System.out.println(id);
-        return pagesService.getPageByUUID(id);
+    @GetMapping("/page")
+    public ResponseEntity<?> getPagesById(
+            @RequestParam(required = false) String pages_id,
+            @RequestParam(required = false) String pages_name
+    ) {
+        return pagesService.getSinglePage(pages_id, pages_name);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deletePages(@RequestParam(required = true, name = "pages_id") String pagesId) {
+        return pagesService.deletePages(pagesId);
     }
 
     @GetMapping

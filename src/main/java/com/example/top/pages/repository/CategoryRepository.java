@@ -11,6 +11,8 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
 
     @Query(value = "select * from category c where id = :uuid", nativeQuery = true)
     Optional<Category> findByUUID(UUID uuid);
+    @Query(value = "select * from category c where id = :uuid", nativeQuery = true)
+    Optional<Category> findByUUIDString(String uuid);
 
     @Query(value = "select * from category c where name = :nameCategory", nativeQuery = true)
     Optional<Category> findCategoryByName(String nameCategory);
