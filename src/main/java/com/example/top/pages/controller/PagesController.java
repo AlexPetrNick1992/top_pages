@@ -3,6 +3,7 @@ package com.example.top.pages.controller;
 
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.payload.request.PagesRequest;
+import com.example.top.pages.payload.request.PagesUpdate;
 import com.example.top.pages.service.PagesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,14 @@ public class PagesController {
     @PostMapping("/create")
     public ResponseEntity<?> createPages(@Valid @RequestBody PagesRequest pagesRequest) {
         return pagesService.createPages(pagesRequest);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updatePages(
+            @RequestParam(required = true, name = "pages_id") String pagesId,
+            @Valid @RequestBody PagesUpdate pagesUpdate
+    ) {
+        return pagesService.updatePages(pagesId, pagesUpdate);
     }
 
     @GetMapping("/join_item")

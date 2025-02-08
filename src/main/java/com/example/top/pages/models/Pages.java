@@ -24,6 +24,13 @@ public class Pages {
     @Column(name = "isapproved")
     private boolean isApproved;
 
+    @Override
+    public String toString() {
+        return "Pages{" +
+                "id=" + id +
+                '}';
+    }
+
     @ManyToMany(cascade =
     {
         CascadeType.DETACH,

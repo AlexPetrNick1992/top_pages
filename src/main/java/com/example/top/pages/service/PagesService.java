@@ -4,17 +4,20 @@ import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.payload.request.PagesRequest;
+import com.example.top.pages.payload.request.PagesUpdate;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.payload.response.ResponseSinglePages;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -137,4 +140,19 @@ public class PagesService {
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully create", String.valueOf(infoCreated.getId()));
     }
 
+    public ResponseEntity<?> updatePages(String pagesId, PagesUpdate pagesUpdate) {
+        Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pagesId);
+        if (pagesCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not found", pagesId);
+        }
+        Pages pages = pagesCheck.get();
+        String newName = pagesUpdate.getName();
+        if (newName != null && !newName.isEmpty()) {pages.setName(newName);}
+        String newDesc = pagesUpdate.getDescription();
+        if (newDesc != null && !newDesc.isEmpty()) {pages.setDescription(newDesc);}
+        System.out.println(pages.getName());
+        System.out.println(pages.getDescription());
+        pagesRepository.save(pages);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully update", pagesId);
+    }
 }
