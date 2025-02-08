@@ -25,7 +25,6 @@ public class ItemsService {
     private final CategoryRepository categoryRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
 
-
     public List<Items> getItemsList() {
         return itemsRepository.findAll();
     }
@@ -44,8 +43,8 @@ public class ItemsService {
                     List.of(categoryFind.get())
             );
             if (itemsRequest.getDescription() != null) {items.setDescription(itemsRequest.getDescription());}
-            itemsRepository.save(items);
-            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Items created %s", itemsRequest.getItemsName()), null);
+            Items itemCreated = itemsRepository.save(items);
+            return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Items created %s", itemsRequest.getItemsName()), itemCreated.getId().toString());
         }
     }
 }

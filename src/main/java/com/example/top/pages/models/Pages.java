@@ -24,7 +24,13 @@ public class Pages {
     @Column(name = "isapproved")
     private boolean isApproved;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade =
+    {
+        CascadeType.DETACH,
+                CascadeType.MERGE,
+                CascadeType.REFRESH,
+                CascadeType.PERSIST
+    })
     @JoinTable(
             name = "pages_items",
             joinColumns = @JoinColumn(name = "pages_id"),
@@ -32,8 +38,7 @@ public class Pages {
     )
     private Collection<Items> items;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "category", referencedColumnName = "id")
+    @OneToOne @JoinColumn(name = "category")
     private Category category;
 
     public Pages(Category category, boolean isApproved, String description, String name) {

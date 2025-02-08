@@ -131,7 +131,14 @@ public class RateService {
     }
 
     public ResponseEntity<?> rateToItem(RateAction rateAction) {
-        Items tempItem = itemsRepository.findByStringUUIDStrict(rateAction.getItemId());
+        Items tempItem;
+        Optional<Items> itemsCheck = itemsRepository.findByStringUUID(rateAction.getItemId());
+        if (itemsCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Item not found", rateAction.getItemId());
+        } else {
+            tempItem = itemsCheck.get();
+        }
+
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());

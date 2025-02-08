@@ -1,11 +1,13 @@
 package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
+import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.payload.request.PagesRequest;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.payload.response.ResponseSinglePages;
 import com.example.top.pages.repository.CategoryRepository;
+import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +29,38 @@ public class PagesService {
     private final PagesRepository pagesRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
+    private final ItemsRepository itemsRepository;
 
     public List<Pages> getPagesList() {
         return pagesRepository.findAll();
+    }
+
+    public ResponseEntity<?> joinItem(String itemId, String pagesId) {
+        Optional<Items> itemCheck = itemsRepository.findByStringUUID(itemId);
+        if (itemCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Items not exists", itemId);
+        }
+        Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pagesId);
+        if (pagesCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pagesId);
+        }
+        Items item = itemCheck.get();
+        Pages page = pagesCheck.get();
+        /* Добавляем к item зависимость category */
+        Collection<Category> categoriesList = item.getCategory();
+        categoriesList.add(page.getCategory());
+        item.setCategory(categoriesList);
+        itemsRepository.save(item);
+
+        /* Добавляем зависимость items к pages */
+        Collection<Items> items = page.getItems();
+        Collection<UUID> itemsIds = items.stream().map(Items::getId).toList();
+        if (itemsIds.contains(item.getId())) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This page contains item", String.valueOf(item.getId()));
+        }
+        items.add(item);
+        pagesRepository.save(page);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully add item", String.valueOf(item.getId()));
     }
 
     public ResponseEntity<?> deletePages(String pagesId) {
@@ -36,7 +69,8 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pagesId);
         } else {
             Pages page = pagesCheck.get();
-            pagesRepository.delete(page);
+            Category category = categoryRepository.findByUUIDStringStrick(String.valueOf(page.getCategory().getId()));
+            categoryRepository.delete(category);
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully deleted", String.valueOf(page.getId()));
         }
     }
@@ -94,11 +128,12 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Pages %s - is exists", pagesRequest.getName()), null);
         }
         Category category = new Category(pagesRequest.getCategory());
+        categoryRepository.save(category);
+
         Pages page = new Pages(category, roles.contains("ROLE_ADMIN"), pagesRequest.getName());
         String description = pagesRequest.getDescription();
         if (description != null && !description.isEmpty()) {page.setDescription(description);}
         Pages infoCreated = pagesRepository.save(page);
-        System.out.println(infoCreated);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully create", String.valueOf(infoCreated.getId()));
     }
 

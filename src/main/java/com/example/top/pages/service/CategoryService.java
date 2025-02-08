@@ -1,21 +1,24 @@
 package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
+import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Data
+@RequiredArgsConstructor
 @Service
 public class CategoryService {
-
     private final CategoryRepository categoryRepository;
-
-    public CategoryService(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    private final ResponseEntityAppResponse responseEntityAppResponse;
 
     public List<Category> getCategoryList() {
         return categoryRepository.findAll();
@@ -40,5 +43,15 @@ public class CategoryService {
             throw new IllegalStateException("User has exists");
         }
         return categoryRepository.save(category);
+    }
+
+    public ResponseEntity<?> deleteCategory(String categoryId) {
+        Optional<Category> categoryCheck = categoryRepository.findByUUIDString(categoryId);
+        if (categoryCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Category not exists", categoryId);
+        }
+        Category category = categoryCheck.get();
+        categoryRepository.delete(category);
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Category successfully delete", categoryId);
     }
 }

@@ -40,6 +40,14 @@ public class PagesController {
         return pagesService.createPages(pagesRequest);
     }
 
+    @GetMapping("/join_item")
+    public ResponseEntity<?> joinItem(
+            @RequestParam(required = true, name = "item_id") String itemId,
+            @RequestParam(required = true, name = "pages_id") String pagesId
+    ) {
+        return pagesService.joinItem(itemId, pagesId);
+    }
+
     @GetMapping("/approve")
     public ResponseEntity<?> approvePages(@RequestParam(required = true, name = "pages_id") String pageId) {
         return pagesService.approvePages(pageId);
