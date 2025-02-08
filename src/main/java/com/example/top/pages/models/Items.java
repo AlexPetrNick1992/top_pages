@@ -17,7 +17,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="item")
-@ToString
 public class Items {
 
     @Id
@@ -31,12 +30,21 @@ public class Items {
     @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
 
-    public Items(String name, Collection<Category> category) {
+    public Items(String name, Collection<Category> category, Collection<Pages> pages) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.category = category;
         this.description = "No description";
+        this.pages = pages;
+    }
+
+    @Override
+    public String toString() {
+        return "Items{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 
     @ManyToMany(cascade =

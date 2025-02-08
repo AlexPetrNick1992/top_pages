@@ -3,6 +3,7 @@ package com.example.top.pages.service;
 import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
+import com.example.top.pages.models.Rate;
 import com.example.top.pages.payload.request.PagesRequest;
 import com.example.top.pages.payload.request.PagesUpdate;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
@@ -20,10 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -104,19 +102,41 @@ public class PagesService {
         }
     }
 
-    public ResponseEntity<?> getSinglePage(String pages_id, String pages_name) {
+    public ResponseEntity<?> getSinglePage(String pages_id, String pages_name, String mode, String type) {
         Optional<Pages> pages;
         if (pages_id == null && pages_name == null) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Request need pages_id or pages_name", null);
         }
+
         if (pages_id == null) {pages_id = "";}
+
         if (pages_id.isEmpty()) {pages = pagesRepository.getPagesByName(pages_name);
         } else { pages = pagesRepository.findByUUIDString(pages_id);}
+
         if (pages.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
-        } else {
-            return ResponseEntity.ok(new ResponseSinglePages(pages.get()));
         }
+        Pages originalPages = pages.get();
+        List<Items> pagesItems = originalPages.getItems().stream().toList();
+        originalPages.setItems(filterItems(pagesItems, mode, type));
+        return ResponseEntity.ok(new ResponseSinglePages(originalPages));
+    }
+
+    private List<Items> filterItems(List<Items> itemsList, String mode, String type) {
+        List<Items> filterItems = itemsList;
+        /* Фильтруем Rates isApproved*/
+        if (!Objects.equals(mode, "full")) {
+            filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(Rate::isApproved).toList());}).toList();
+        }
+        /* Фильтруем на позитивный и негативный */
+        if (type != null) {
+            if (Objects.equals(type, "negative")) {
+                filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(rate -> !rate.isPositive()).toList());}).toList();
+            } else {
+                filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(Rate::isPositive).toList());}).toList();
+            }
+        }
+        return filterItems;
     }
 
     public ResponseEntity<?> createPages(PagesRequest pagesRequest) {

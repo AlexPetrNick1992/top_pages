@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,9 +22,11 @@ public class PagesController {
     @GetMapping("/page")
     public ResponseEntity<?> getPagesById(
             @RequestParam(required = false) String pages_id,
-            @RequestParam(required = false) String pages_name
+            @RequestParam(required = false) String pages_name,
+            @RequestParam(required = false) String mode,
+            @RequestParam(required = false) String type
     ) {
-        return pagesService.getSinglePage(pages_id, pages_name);
+        return pagesService.getSinglePage(pages_id, pages_name, mode, type);
     }
 
     @DeleteMapping

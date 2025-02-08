@@ -1,6 +1,7 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Category;
+import com.example.top.pages.models.Pages;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -17,6 +18,11 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
     @Query(value = "select * from category c where id = :uuid", nativeQuery = true)
     Category findByUUIDStringStrick(String uuid);
 
+    @Query(value = "select p.* from category c left join pages p ON p.category = c.id where c.id = :uuid", nativeQuery = true)
+    Optional<Pages> findPagesByCategoryUUID(String uuid);
+
     @Query(value = "select * from category c where name = :nameCategory", nativeQuery = true)
     Optional<Category> findCategoryByName(String nameCategory);
+
+
 }
