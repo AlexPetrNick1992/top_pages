@@ -126,6 +126,9 @@ public class PagesService {
         List<Items> filterItems = itemsList;
         /* Фильтруем Rates isApproved*/
         if (!Objects.equals(mode, "full")) {
+            /* Убираем все неподтвержденные items */
+            filterItems = filterItems.stream().filter(Items::getIsApproved).toList();
+            /* Убираем все неподтвержденные rates */
             filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(Rate::isApproved).toList());}).toList();
         }
         /* Фильтруем на позитивный и негативный */

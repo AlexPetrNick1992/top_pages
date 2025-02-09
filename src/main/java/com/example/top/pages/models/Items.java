@@ -27,16 +27,20 @@ public class Items {
     private String name;
     private String description;
 
+    @Column(name = "isapproved")
+    private Boolean isApproved;
+
     @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
 
-    public Items(String name, Collection<Category> category, Collection<Pages> pages) {
+    public Items(String name, Collection<Category> category, Collection<Pages> pages, Boolean isApproved) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.category = category;
         this.description = "No description";
         this.pages = pages;
+        this.isApproved = isApproved;
     }
 
     @Override

@@ -12,6 +12,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.*;
@@ -33,6 +35,9 @@ public class ItemsService {
     }
 
     public ResponseEntity<?> createItems(ItemsRequest itemsRequest) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+
         Optional<Items> itemsFind = itemsRepository.findByName(String.valueOf(itemsRequest.getItemsName()));
         if (itemsFind.isPresent()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Items already exists", itemsRequest.getItemsName());
@@ -46,7 +51,8 @@ public class ItemsService {
         Items items = new Items(
                 itemsRequest.getItemsName(),
                 List.of(categoryFind.get()),
-                List.of(categoryFind.get().getPages())
+                List.of(categoryFind.get().getPages()),
+                roles.contains("ROLE_ADMIN")
         );
         if (itemsRequest.getDescription() != null) {items.setDescription(itemsRequest.getDescription());}
         Items itemCreated = itemsRepository.save(items);
