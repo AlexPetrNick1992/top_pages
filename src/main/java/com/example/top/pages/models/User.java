@@ -41,6 +41,7 @@ public class User {
     }
 
     @ManyToMany
+    @JsonIgnore
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),

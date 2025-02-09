@@ -34,6 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                         .requestMatchers("/api/v1/rate").authenticated()
+                        .requestMatchers("api/v1/user/info").authenticated()
                         .requestMatchers("/api/v1/rate/approve").hasRole("ADMIN")
                         .requestMatchers("/api/v1/rate/disprove").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/pages/join_item").hasRole("ADMIN")

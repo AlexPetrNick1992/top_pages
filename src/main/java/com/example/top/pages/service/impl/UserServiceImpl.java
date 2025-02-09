@@ -1,10 +1,10 @@
 package com.example.top.pages.service.impl;
 
-import com.example.top.pages.payload.response.AppResponse;
+import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.response.*;
 import com.example.top.pages.payload.request.JwtTokenRequest;
 import com.example.top.pages.payload.request.RegistrationUser;
-import com.example.top.pages.payload.response.JwtResponse;
-import com.example.top.pages.payload.response.RegistrationResponse;
+import com.example.top.pages.repository.RateRepository;
 import com.example.top.pages.repository.RolesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.models.User;
@@ -12,7 +12,9 @@ import com.example.top.pages.utils.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,6 +33,7 @@ public class UserServiceImpl implements UserDetailsService {
     private final RolesRepository rolesRepository;
     private final JwtTokenUtils jwtTokenUtils;
     private final PasswordEncoder passwordEncoder;
+    private final RateRepository rateRepository;
 
     public List<User> getUserList() {return userRepository.findAll();}
     public Optional<User> findByEmail(String email) {return userRepository.findUserByEmail(email);}
@@ -72,5 +75,15 @@ public class UserServiceImpl implements UserDetailsService {
         return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
                 String.format("Пользователь %s зарегистрирован", registrationUser.getEmail())
         ));
+    }
+
+
+    public ResponseEntity<?> getUserInfo() {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        System.out.println(userItem);
+        List<Rate> rateList = rateRepository.getListRatesByIdUser(String.valueOf(userItem.getId()));
+        return ResponseEntity.ok(new UserInfoResponse(userItem, rateList.size()));
+
     }
 }
