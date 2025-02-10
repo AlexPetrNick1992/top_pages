@@ -4,6 +4,7 @@ import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.payload.request.ItemsRequest;
+import com.example.top.pages.payload.response.ItemsListResponse;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
@@ -30,8 +31,9 @@ public class ItemsService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final PagesRepository pagesRepository;
 
-    public List<Items> getItemsList() {
-        return itemsRepository.findAll();
+    public ResponseEntity<?> getItemsList() {
+        List<Items> itemsList = itemsRepository.findAll();
+        return ResponseEntity.ok(new ItemsListResponse(itemsList));
     }
 
     public ResponseEntity<?> createItems(ItemsRequest itemsRequest) {

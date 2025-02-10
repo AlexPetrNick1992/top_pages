@@ -1,5 +1,6 @@
 package com.example.top.pages.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class Items {
     @Column(name = "isapproved")
     private Boolean isApproved;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
 
@@ -65,6 +67,7 @@ public class Items {
     )
     private Collection<Category> category;
 
+    @JsonIgnore
     @ManyToMany(cascade =
             {
                     CascadeType.DETACH,

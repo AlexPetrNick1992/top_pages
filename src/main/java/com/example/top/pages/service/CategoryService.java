@@ -1,6 +1,7 @@
 package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
+import com.example.top.pages.payload.response.CategoryByPageReponse;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import lombok.Data;
@@ -53,5 +54,10 @@ public class CategoryService {
         Category category = categoryCheck.get();
         categoryRepository.delete(category);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Category successfully delete", categoryId);
+    }
+
+    public ResponseEntity<?> getCategoryByPage(String pagesId) {
+        Category category = categoryRepository.getCategoryByIdPages(pagesId);
+        return ResponseEntity.ok(new CategoryByPageReponse(category));
     }
 }

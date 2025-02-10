@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
+@CrossOrigin("*")
 @RestController
 @RequestMapping(path="api/items")
 public class ItemsController {
@@ -21,7 +21,7 @@ public class ItemsController {
     }
 
     @GetMapping
-    public List<Items> getItems() {
+    public ResponseEntity<?> getItems() {
         return itemsService.getItemsList();
     }
 

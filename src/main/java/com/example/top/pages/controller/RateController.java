@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*")
 @Data
 @RequiredArgsConstructor
 @RestController
@@ -20,7 +21,7 @@ public class RateController {
     private final RateService rateService;
 
     @GetMapping
-    public List<Rate> getListRatesForUser() {
+    public ResponseEntity<?> getListRatesForUser() {
         return rateService.getListRatesForUser();
     }
 

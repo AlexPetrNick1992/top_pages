@@ -24,5 +24,6 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
     @Query(value = "select * from category c where name = :nameCategory", nativeQuery = true)
     Optional<Category> findCategoryByName(String nameCategory);
 
-
+    @Query(value = "select c.* from category c left join pages p on p.category = c.id where p.id = :pagesUUID", nativeQuery = true)
+    Category getCategoryByIdPages(String pagesUUID);
 }

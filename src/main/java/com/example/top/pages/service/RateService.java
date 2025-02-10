@@ -8,6 +8,7 @@ import com.example.top.pages.models.Rate;
 import com.example.top.pages.models.User;
 import com.example.top.pages.payload.request.RateAction;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
+import com.example.top.pages.payload.response.UserRatesResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.RateRepository;
@@ -38,11 +39,11 @@ public class RateService {
         return rateRepository.findAll();
     }
 
-    public List<Rate> getListRatesForUser() {
+    public ResponseEntity<?> getListRatesForUser() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         String userContextEmail = contextUser.getPrincipal().toString();
         User user = userRepository.findCheckedUserByEmail(userContextEmail);
-        return rateRepository.getListRatesByIdUser(String.valueOf(user.getId()));
+        return ResponseEntity.ok(new UserRatesResponse(rateRepository.getListRatesByIdUser(String.valueOf(user.getId()))));
     }
 
     public ResponseEntity<?> approve(String rate_id, String category_id) {

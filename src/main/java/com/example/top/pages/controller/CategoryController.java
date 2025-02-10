@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@CrossOrigin("*")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path="api/v1/category")
@@ -23,6 +24,11 @@ public class CategoryController {
     @GetMapping("/{id}")
     public Category getCategoryByUUID(@PathVariable UUID id) {
         return categoryService.getCategoryByUUID(id);
+    }
+
+    @GetMapping("/pages")
+    public ResponseEntity<?> getCategoryByPage (@RequestParam(required = true, name = "pages_id") String pagesId) {
+        return categoryService.getCategoryByPage(pagesId);
     }
 
     @DeleteMapping
