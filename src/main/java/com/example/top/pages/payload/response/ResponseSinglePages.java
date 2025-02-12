@@ -1,12 +1,9 @@
 package com.example.top.pages.payload.response;
 
-import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +20,7 @@ public class ResponseSinglePages {
     List<Map<String, String>> items;
 
     public ResponseSinglePages(Pages pages) {
-        this.name = pages.getName();
+        this.name = pages.getTitle();
         this.count_items = pages.getItems().size();
         this.items = pages.getItems().stream().map(
                 items1 -> {

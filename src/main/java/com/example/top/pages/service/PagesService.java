@@ -11,18 +11,20 @@ import com.example.top.pages.payload.response.ResponseSinglePages;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
-import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import com.example.top.pages.repository.models.PagesCategory;
+import com.example.top.pages.repository.models.PagesItems;
+import com.example.top.pages.repository.models.ReturnCountRates;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PagesService {
@@ -32,8 +34,86 @@ public class PagesService {
     private final CategoryRepository categoryRepository;
     private final ItemsRepository itemsRepository;
 
-    public List<Pages> getPagesList() {
-        return pagesRepository.findAll();
+    public Map<String, Object> transformPagesListToDict(List<PagesCategory> listObject) {
+        Map<String, Object> mappedList = new HashMap<>();
+
+        List<PagesCategory> temp = listObject.stream().peek(pages -> mappedList.put(
+                pages.getPagesId(),
+                new HashMap<>() {{
+                    put("title", pages.getTitle());
+                    put("description_pages", pages.getDescriptionPages());
+                    put("isApproved", pages.getIsApproved());
+                    put("category", new HashMap<>() {{
+                        put("id", pages.getCategoryId());
+                        put("name", pages.getNameCategory());
+                    }});
+                }}
+        )).toList();
+        log.debug(temp.toString());
+        return mappedList;
+    }
+
+    public Map<String, Object> parsedCountRatesItems(List<ReturnCountRates> itemRates) {
+        Map<String, Object> mappedList = new HashMap<>();
+        List<ReturnCountRates> temp = itemRates.stream().peek(items -> mappedList.put(
+                items.getId(),
+                new HashMap<String, Object>() {{
+                    put("count_rates", items.getCount());
+                    put("name", items.getName());
+                    put("desc", items.getDescription());
+                }}
+        )).toList();
+        log.debug(temp.toString());
+        return mappedList;
+    }
+
+    public Map<String, List<String>> mappedItemsByPage(List<PagesItems> pagesItems) {
+        Map<String, List<String>> groupedItems = new HashMap<>();
+        List<PagesItems> temp = pagesItems.stream().peek(items -> {
+            if (groupedItems.containsKey(items.getPagesId())) {
+                List<String> tempList = new ArrayList<>(groupedItems.get(items.getPagesId()));
+                tempList.add(items.getItemsId());
+                groupedItems.put(items.getPagesId(), tempList);
+            } else {
+                groupedItems.put(items.getPagesId(), Collections.singletonList(items.getItemsId()));
+            }
+        }).toList();
+        log.debug(temp.toString());
+        return groupedItems;
+    }
+
+    public List<HashMap<Object, Object>> getPagesInfo(List<PagesCategory> listPages) {
+        List<String> pagesListIds = listPages.stream().map(PagesCategory::getPagesId).toList();
+        /* Получаем pages */
+        Map<String, Object> pagesParsed = transformPagesListToDict(listPages);
+        System.out.println(pagesParsed);
+        /* Получаем pages_items */
+        List<PagesItems> pagesItemsList = pagesRepository.getItemsPages(pagesListIds);
+        Map<String, List<String>> groupedItemsByPages = mappedItemsByPage(pagesItemsList);
+        /* Получаем items count rates */
+        List<ReturnCountRates> itemsRates = itemsRepository.getCountRatesByItemsAll(
+                pagesItemsList.stream().map(PagesItems::getItemsId).toList()
+        );
+        Map<String, Object> parsedCounts = parsedCountRatesItems(itemsRates);
+        return pagesListIds.stream().map(pages -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> pageInfo = (Map<String, Object>) pagesParsed.get(pages);
+            List<String> itemsByPages;
+            if (groupedItemsByPages.get(pages) == null) itemsByPages = new ArrayList<>();
+            else { itemsByPages = groupedItemsByPages.get(pages); }
+            return new HashMap<>() {{
+                put("id", pages);
+                put("title", pageInfo.get("title"));
+                put("description", pageInfo.get("description_pages"));
+                put("category", pageInfo.get("category"));
+                put("items", itemsByPages.stream().map(parsedCounts::get).toList());
+            }};
+        }).toList();
+    }
+
+    public ResponseEntity<?> getPagesList() {
+        List<PagesCategory> pagesList = pagesRepository.getAllPagesWithCategory();
+        return ResponseEntity.ok(getPagesInfo(pagesList));
     }
 
     public ResponseEntity<?> joinItem(String itemId, String pagesId) {
@@ -82,7 +162,9 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
         } else {
             Pages page = pagesCheck.get();
-            if (page.isApproved()) { return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already approved", pageId); }
+            if (page.isApproved()) {
+                return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already approved", pageId);
+            }
             page.setApproved(true);
             pagesRepository.save(page);
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully approved", null);
@@ -95,31 +177,29 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
         } else {
             Pages page = pagesCheck.get();
-            if (!page.isApproved()) { return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already disprove", pageId); }
+            if (!page.isApproved()) {
+                return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already disprove", pageId);
+            }
             page.setApproved(false);
             pagesRepository.save(page);
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully disprove", null);
         }
     }
 
-    public ResponseEntity<?> getSinglePage(String pages_id, String pages_name, String mode, String type) {
-        Optional<Pages> pages;
-        if (pages_id == null && pages_name == null) {
-            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Request need pages_id or pages_name", null);
+    public ResponseEntity<?> getSinglePage(String pages_id, String pages_title, String mode, String type) {
+        Optional<PagesCategory> pages;
+        if (pages_id == null && pages_title == null) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Request need pages_id or pages_title", null);
         }
-
         if (pages_id == null) {pages_id = "";}
-
-        if (pages_id.isEmpty()) {pages = pagesRepository.getPagesByName(pages_name);
-        } else { pages = pagesRepository.findByUUIDString(pages_id);}
-
+        if (pages_id.isEmpty()) {pages = pagesRepository.getAllPagesWithCategoryByTitle(pages_title);
+        } else {pages = pagesRepository.getAllPagesWithCategoryByUUID(pages_id);}
         if (pages.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
         }
-        Pages originalPages = pages.get();
-        List<Items> pagesItems = originalPages.getItems().stream().toList();
-        originalPages.setItems(filterItems(pagesItems, mode, type));
-        return ResponseEntity.ok(new ResponseSinglePages(originalPages));
+        PagesCategory originalPages = pages.get();
+        HashMap<Object, Object> infoPage = getPagesInfo(List.of(originalPages)).getFirst();
+        return ResponseEntity.ok(infoPage);
     }
 
     private List<Items> filterItems(List<Items> itemsList, String mode, String type) {
@@ -129,14 +209,14 @@ public class PagesService {
             /* Убираем все неподтвержденные items */
             filterItems = filterItems.stream().filter(Items::getIsApproved).toList();
             /* Убираем все неподтвержденные rates */
-            filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(Rate::isApproved).toList());}).toList();
+            filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(Rate::isApproved).toList())).toList();
         }
         /* Фильтруем на позитивный и негативный */
         if (type != null) {
             if (Objects.equals(type, "negative")) {
-                filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(rate -> !rate.isPositive()).toList());}).toList();
+                filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(rate -> !rate.isPositive()).toList())).toList();
             } else {
-                filterItems = filterItems.stream().peek(item -> {item.setRate(item.getRate().stream().filter(Rate::isPositive).toList());}).toList();
+                filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(Rate::isPositive).toList())).toList();
             }
         }
         return filterItems;
@@ -158,7 +238,9 @@ public class PagesService {
 
         Pages page = new Pages(category, roles.contains("ROLE_ADMIN"), pagesRequest.getName());
         String description = pagesRequest.getDescription();
-        if (description != null && !description.isEmpty()) {page.setDescription(description);}
+        if (description != null && !description.isEmpty()) {
+            page.setDescriptionPages(description);
+        }
         Pages infoCreated = pagesRepository.save(page);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully create", String.valueOf(infoCreated.getId()));
     }
@@ -170,11 +252,13 @@ public class PagesService {
         }
         Pages pages = pagesCheck.get();
         String newName = pagesUpdate.getName();
-        if (newName != null && !newName.isEmpty()) {pages.setName(newName);}
+        if (newName != null && !newName.isEmpty()) {
+            pages.setTitle(newName);
+        }
         String newDesc = pagesUpdate.getDescription();
-        if (newDesc != null && !newDesc.isEmpty()) {pages.setDescription(newDesc);}
-        System.out.println(pages.getName());
-        System.out.println(pages.getDescription());
+        if (newDesc != null && !newDesc.isEmpty()) {
+            pages.setDescriptionPages(newDesc);
+        }
         pagesRepository.save(pages);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully update", pagesId);
     }

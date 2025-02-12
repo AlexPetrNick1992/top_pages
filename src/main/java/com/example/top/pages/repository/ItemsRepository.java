@@ -1,9 +1,12 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Items;
+import com.example.top.pages.models.Pages;
+import com.example.top.pages.repository.models.ReturnCountRates;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,5 +23,15 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
 
     @Query(value = "select * from item i where name = :name", nativeQuery = true)
     Optional<Items> findByName(String name);
+
+    @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
+            "from item i join rate r on r.item = i.id " +
+            "where r.item in :listItems and r.ispositive = :isPositive group by i.id", nativeQuery = true)
+    List<ReturnCountRates> getCountRatesByItems(List<String> listItems, Boolean isPositive);
+
+    @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
+            "from item i join rate r on r.item = i.id " +
+            "where r.item in :listItems group by i.id", nativeQuery = true)
+    List<ReturnCountRates> getCountRatesByItemsAll(List<String> listItems);
 
 }

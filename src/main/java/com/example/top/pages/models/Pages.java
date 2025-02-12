@@ -19,8 +19,9 @@ public class Pages {
     @Id
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
-    private String name;
-    private String description;
+    private String title;
+    @Column(name = "description_pages")
+    private String descriptionPages;
     @Column(name = "isapproved")
     private boolean isApproved;
 
@@ -48,20 +49,20 @@ public class Pages {
     @OneToOne @JoinColumn(name = "category")
     private Category category;
 
-    public Pages(Category category, boolean isApproved, String description, String name) {
+    public Pages(Category category, boolean isApproved, String descriptionPages, String title) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
         this.isApproved = isApproved;
-        this.description = description;
-        this.name = name;
+        this.descriptionPages = descriptionPages;
+        this.title = title;
     }
 
-    public Pages(Category category, boolean isApproved, String name) {
+    public Pages(Category category, boolean isApproved, String title) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
         this.isApproved = isApproved;
-        this.name = name;
+        this.title = title;
     }
 }

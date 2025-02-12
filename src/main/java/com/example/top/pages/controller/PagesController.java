@@ -22,11 +22,11 @@ public class PagesController {
     @GetMapping("/page")
     public ResponseEntity<?> getPagesById(
             @RequestParam(required = false) String pages_id,
-            @RequestParam(required = false) String pages_name,
+            @RequestParam(required = false) String pages_title,
             @RequestParam(required = false) String mode,
             @RequestParam(required = false) String type
     ) {
-        return pagesService.getSinglePage(pages_id, pages_name, mode, type);
+        return pagesService.getSinglePage(pages_id, pages_title, mode, type);
     }
 
     @DeleteMapping
@@ -35,7 +35,7 @@ public class PagesController {
     }
 
     @GetMapping
-    public List<Pages> listPages() {
+    public ResponseEntity<?> listPages() {
         return pagesService.getPagesList();
     }
 
