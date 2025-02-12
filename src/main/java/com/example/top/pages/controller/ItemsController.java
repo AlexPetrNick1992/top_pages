@@ -21,8 +21,10 @@ public class ItemsController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getItems() {
-        return itemsService.getItemsList();
+    public ResponseEntity<?> getItems(
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return itemsService.getItemsList(categoryId);
     }
 
     @PostMapping

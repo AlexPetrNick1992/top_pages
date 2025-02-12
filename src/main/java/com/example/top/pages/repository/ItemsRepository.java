@@ -1,8 +1,8 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Items;
-import com.example.top.pages.models.Pages;
-import com.example.top.pages.repository.models.ReturnCountRates;
+import com.example.top.pages.repository.models.Items.ItemsCategory;
+import com.example.top.pages.repository.models.Pages.ReturnCountRates;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -33,5 +33,12 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
             "from item i join rate r on r.item = i.id " +
             "where r.item in :listItems group by i.id", nativeQuery = true)
     List<ReturnCountRates> getCountRatesByItemsAll(List<String> listItems);
+
+    @Query(value = "select i.id as item_id, i.name as item_name, i.description, i.isapproved " +
+            "from item i " +
+            "join item_category ic on ic.item_id = i.id " +
+            "join category c on c.id = ic.category_id " +
+            "where c.id = :categoryId", nativeQuery = true)
+    List<ItemsCategory> getItemsByCategory(String categoryId);
 
 }

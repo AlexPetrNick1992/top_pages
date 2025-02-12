@@ -35,10 +35,6 @@ public class RateService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
 
-    public List<Rate> getRateList() {
-        return rateRepository.findAll();
-    }
-
     public ResponseEntity<?> getListRatesForUser() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         String userContextEmail = contextUser.getPrincipal().toString();

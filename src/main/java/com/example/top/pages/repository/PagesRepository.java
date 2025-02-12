@@ -2,8 +2,8 @@ package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.models.Rate;
-import com.example.top.pages.repository.models.PagesCategory;
-import com.example.top.pages.repository.models.PagesItems;
+import com.example.top.pages.repository.models.Pages.PagesCategory;
+import com.example.top.pages.repository.models.Pages.PagesItems;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

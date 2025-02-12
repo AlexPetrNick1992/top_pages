@@ -1,4 +1,4 @@
-package com.example.top.pages.repository.models;
+package com.example.top.pages.repository.models.Pages;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

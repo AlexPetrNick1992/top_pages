@@ -9,6 +9,7 @@ import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
+import com.example.top.pages.repository.models.Items.ItemsCategory;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,8 +32,8 @@ public class ItemsService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final PagesRepository pagesRepository;
 
-    public ResponseEntity<?> getItemsList() {
-        List<Items> itemsList = itemsRepository.findAll();
+    public ResponseEntity<?> getItemsList(String categoryId) {
+        List<ItemsCategory> itemsList = itemsRepository.getItemsByCategory(categoryId);
         return ResponseEntity.ok(new ItemsListResponse(itemsList));
     }
 
