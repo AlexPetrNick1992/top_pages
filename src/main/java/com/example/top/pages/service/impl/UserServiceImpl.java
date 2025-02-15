@@ -77,13 +77,13 @@ public class UserServiceImpl implements UserDetailsService {
         ));
     }
 
-
     public ResponseEntity<?> getUserInfo() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
-        System.out.println(userItem);
-        List<Rate> rateList = rateRepository.getListRatesByIdUser(String.valueOf(userItem.getId()));
-        return ResponseEntity.ok(new UserInfoResponse(userItem, rateList.size()));
-
+        Optional<UserInfoResponse> userInfo = rateRepository.getUserInfoWithARates(String.valueOf(userItem.getId()));
+        if (userInfo.isPresent()) {
+            return ResponseEntity.ok(userInfo.get());
+        }
+        return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь не найден"), HttpStatus.BAD_REQUEST);
     }
 }

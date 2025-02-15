@@ -137,6 +137,7 @@ public class RateService {
 
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+        System.out.println(contextUser.getPrincipal().toString());
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
 
         /* Категория */
@@ -181,6 +182,9 @@ public class RateService {
     }
 
     public ResponseEntity<?> getRatesFromItem(String itemId) {
-        return ResponseEntity.ok(rateRepository.getRateByItem(itemId));
+        return ResponseEntity.ok(rateRepository.getRateByItem(itemId, 3));
+    }
+    public ResponseEntity<?> getAllRatesFromItem(String itemId) {
+        return ResponseEntity.ok(rateRepository.getRateByItemWithoutLimit(itemId));
     }
 }

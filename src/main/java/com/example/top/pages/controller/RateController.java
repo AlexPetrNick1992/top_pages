@@ -25,6 +25,11 @@ public class RateController {
             @RequestParam(required = true, name = "id") String itemId
     ) {return rateService.getRatesFromItem(itemId);}
 
+    @GetMapping(path = "/item_all")
+    public ResponseEntity<?> getAllItemsRate(
+            @RequestParam(required = true, name = "id") String itemId
+    ) {return rateService.getAllRatesFromItem(itemId);}
+
     @GetMapping
     public ResponseEntity<?> getListRatesForUser() {
         return rateService.getListRatesForUser();

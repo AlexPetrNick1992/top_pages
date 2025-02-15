@@ -9,6 +9,7 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
 public class UserInfoResponse {
     @JsonIgnore
     User user;
@@ -17,7 +18,15 @@ public class UserInfoResponse {
     String email;
     String birthday;
     @JsonProperty("count_rates")
-    int countRates;
+    long countRates;
+
+    public UserInfoResponse(String id, String username, String email, String birthday, long countRates) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.birthday = birthday;
+        this.countRates = countRates;
+    }
 
     public UserInfoResponse(User user, int countRates) {
         this.id = String.valueOf(user.getId());

@@ -18,6 +18,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -25,11 +30,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
+    private final CorsConfig corsConfig;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
@@ -37,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("api/v1/user/info").authenticated()
                         .requestMatchers("api/items/users_rated_items").authenticated()
                         .requestMatchers("/api/v1/rate/approve").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/rate/action").authenticated()
                         .requestMatchers("/api/v1/rate/disprove").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/pages/join_item").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/pages").hasRole("ADMIN")
@@ -51,6 +58,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {

@@ -19,6 +19,8 @@ import java.util.List;
 public class PagesController {
     private final PagesService pagesService;
 
+
+
     @GetMapping("/page")
     public ResponseEntity<?> getPagesById(
             @RequestParam(required = false) String pages_id,
@@ -32,6 +34,11 @@ public class PagesController {
     @DeleteMapping
     public ResponseEntity<?> deletePages(@RequestParam(required = true, name = "pages_id") String pagesId) {
         return pagesService.deletePages(pagesId);
+    }
+
+    @GetMapping("search")
+    public ResponseEntity<?> searchPages(@RequestParam(required = true, name = "word") String word) {
+        return pagesService.searchPages(word);
     }
 
     @GetMapping

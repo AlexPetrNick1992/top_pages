@@ -2,6 +2,7 @@ package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.response.UserInfoResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -22,11 +23,20 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select * from rate r where user_id = :userUUID and category_id = :categoryUUID", nativeQuery = true)
     Optional<Rate> getRateByIDAndCategory(String userUUID, String categoryUUID);
 
+    @Query(value = "select u.id, u.\"name\", u.email, u.birthday, count(r.id) " +
+            "from rate r join users u on r.user_id = u.id " +
+            "where u.id = :userUUID " +
+            "group by u.id \n", nativeQuery = true)
+    Optional<UserInfoResponse> getUserInfoWithARates(String userUUID);
+
     @Query(value = "select * from rate r where id = :rateUUID", nativeQuery = true)
     Optional<Rate> getRateByUUID(String rateUUID);
 
-    @Query(value = "select * from rate r where r.item = :itemId", nativeQuery = true)
-    List<Rate> getRateByItem(String itemId);
+    @Query(value = "select * from rate r where r.item = :itemId order by created_at desc limit :limit", nativeQuery = true)
+    List<Rate> getRateByItem(String itemId, Integer limit);
+
+    @Query(value = "select * from rate r where r.item = :itemId order by created_at desc", nativeQuery = true)
+    List<Rate> getRateByItemWithoutLimit(String itemId);
 
     @Query(value="select r.created_at, r.updated_at, r.id, r.\"comment\", r.user_id, r.ispositive, r.isapproved, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)
     Optional<Rate> getItemAndRateByUserAndItemAndCategory(String userUUID, String itemUUID, String categoryId);

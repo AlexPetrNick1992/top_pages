@@ -26,6 +26,4 @@ public class UserController{
         return userService.getUserInfo();
     }
 
-
-
 }

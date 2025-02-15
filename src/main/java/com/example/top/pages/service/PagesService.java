@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -63,6 +64,9 @@ public class PagesService {
                     put("desc", items.getDescription());
                 }}
         )).toList();
+        System.out.println("mappedList");
+        System.out.println(mappedList);
+
         log.debug(temp.toString());
         return mappedList;
     }
@@ -79,6 +83,7 @@ public class PagesService {
             }
         }).toList();
         log.debug(temp.toString());
+        log.debug(temp.toString());
         return groupedItems;
     }
 
@@ -86,7 +91,6 @@ public class PagesService {
         List<String> pagesListIds = listPages.stream().map(PagesCategory::getPagesId).toList();
         /* Получаем pages */
         Map<String, Object> pagesParsed = transformPagesListToDict(listPages);
-        System.out.println(pagesParsed);
         /* Получаем pages_items */
         List<PagesItems> pagesItemsList = pagesRepository.getItemsPages(pagesListIds);
         Map<String, List<String>> groupedItemsByPages = mappedItemsByPage(pagesItemsList);
@@ -95,12 +99,14 @@ public class PagesService {
                 pagesItemsList.stream().map(PagesItems::getItemsId).toList()
         );
         Map<String, Object> parsedCounts = parsedCountRatesItems(itemsRates);
-        return pagesListIds.stream().map(pages -> {
+        List<HashMap<Object, Object>> listOfPages = pagesListIds.stream().map(pages -> {
             @SuppressWarnings("unchecked")
             Map<String, Object> pageInfo = (Map<String, Object>) pagesParsed.get(pages);
             List<String> itemsByPages;
             if (groupedItemsByPages.get(pages) == null) itemsByPages = new ArrayList<>();
-            else { itemsByPages = groupedItemsByPages.get(pages); }
+            else {
+                itemsByPages = groupedItemsByPages.get(pages);
+            }
             return new HashMap<>() {{
                 put("id", pages);
                 put("title", pageInfo.get("title"));
@@ -109,6 +115,19 @@ public class PagesService {
                 put("items", itemsByPages.stream().map(parsedCounts::get).toList());
             }};
         }).toList();
+        /* SORTED */
+
+        listOfPages = listOfPages.stream().map(page -> {
+            List<Map<String, Object>> listItems = (List<Map<String, Object>>) page.get("items");
+            List<Map<String, Object>> modifiableList = new ArrayList<>(listItems);
+            modifiableList.sort((item1, item2) -> {
+                return Long.compare((long) item2.get("count_rates"), (long) item1.get("count_rates"));
+            });
+            page.put("items", modifiableList);
+            return page;
+        }).toList();
+
+        return listOfPages;
     }
 
     public ResponseEntity<?> getPagesList() {
@@ -191,9 +210,14 @@ public class PagesService {
         if (pages_id == null && pages_title == null) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Request need pages_id or pages_title", null);
         }
-        if (pages_id == null) {pages_id = "";}
-        if (pages_id.isEmpty()) {pages = pagesRepository.getAllPagesWithCategoryByTitle(pages_title);
-        } else {pages = pagesRepository.getAllPagesWithCategoryByUUID(pages_id);}
+        if (pages_id == null) {
+            pages_id = "";
+        }
+        if (pages_id.isEmpty()) {
+            pages = pagesRepository.getAllPagesWithCategoryByTitle(pages_title);
+        } else {
+            pages = pagesRepository.getAllPagesWithCategoryByUUID(pages_id);
+        }
         if (pages.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
         }
@@ -261,5 +285,10 @@ public class PagesService {
         }
         pagesRepository.save(pages);
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully update", pagesId);
+    }
+
+    public ResponseEntity<?> searchPages(String word) {
+        System.out.println(word);
+        return ResponseEntity.ok(pagesRepository.searchTitlesByWord(word));
     }
 }

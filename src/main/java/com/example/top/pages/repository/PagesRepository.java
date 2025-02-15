@@ -2,6 +2,7 @@ package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.response.SearchPagesNames;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
 import com.example.top.pages.repository.models.Pages.PagesItems;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,13 +26,22 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "select p.id from pages p", nativeQuery = true)
     List<String> getAllPagesIds();
 
+    @Query(value = "SELECT p.title, p.id from pages p WHERE p.title LIKE %:word%", nativeQuery = true)
+    List<SearchPagesNames> searchTitlesByWord(String word);
+
     @Query(value = "select pi2.pages_id, pi2.items_id from pages_items pi2 where pi2.pages_id in :listPagesId", nativeQuery = true)
     List<PagesItems> getItemsPages(List<String> listPagesId);
 
     @Query(value = "select r.* from pages p left join rate r on r.category_id = p.category where p.id = :pagesUUID", nativeQuery = true)
     List<Rate> getListRatesByPages(String pagesUUID);
 
-    @Query(value = "select p.id as pages_id, p.title, p.description_pages , p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p left join category c on p.category = c.id", nativeQuery = true)
+//    @Query(value = "select p.id as pages_id, p.title, p.description_pages , p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p left join category c on p.category = c.id", nativeQuery = true)
+    @Query(value = "select p.id as pages_id, p.title, p.description_pages , p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description " +
+            "from pages p " +
+            "join category c on p.category = c.id " +
+            "join pages_items pi2 on pi2.pages_id = p.id " +
+            "group by p.id, c.\"name\", c.description " +
+            "order by count(pi2.items_id) desc", nativeQuery = true)
     List<PagesCategory> getAllPagesWithCategory();
 
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +

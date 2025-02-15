@@ -33,8 +33,10 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
     List<ReturnCountRates> getCountRatesByItems(List<String> listItems, Boolean isPositive);
 
     @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
-            "from item i join rate r on r.item = i.id " +
-            "where r.item in :listItems group by i.id", nativeQuery = true)
+            "from item i join rate r on r.item = i.id  " +
+            "where r.item in :listItems " +
+            "group by i.id " +
+            "order by count(r.id) desc", nativeQuery = true)
     List<ReturnCountRates> getCountRatesByItemsAll(List<String> listItems);
 
     @Query(value = "select i.id as item_id, i.name as item_name, i.description, i.isapproved " +
