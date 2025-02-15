@@ -20,6 +20,11 @@ import java.util.List;
 public class RateController {
     private final RateService rateService;
 
+    @GetMapping(path = "/item")
+    public ResponseEntity<?> getItemsRate(
+            @RequestParam(required = true, name = "id") String itemId
+    ) {return rateService.getRatesFromItem(itemId);}
+
     @GetMapping
     public ResponseEntity<?> getListRatesForUser() {
         return rateService.getListRatesForUser();

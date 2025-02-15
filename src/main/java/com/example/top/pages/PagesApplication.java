@@ -9,3 +9,14 @@ public class PagesApplication {
 		SpringApplication.run(PagesApplication.class, args);
 	}
 }
+
+
+/*
+
+{
+	"items": [
+		item_id
+	]
+}
+
+*/

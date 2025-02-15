@@ -1,16 +1,15 @@
 package com.example.top.pages.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +19,12 @@ import java.util.UUID;
 @Table(name="rate")
 public class Rate {
 
+    @JsonProperty(value = "created_at")
+    @Column(name="created_at")
+    private String createdAt;
+    @JsonProperty(value = "updated_at")
+    @Column(name="updated_at")
+    private String updatedAt;
     @Id
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
@@ -38,7 +43,6 @@ public class Rate {
 
     @ManyToOne()
     @JoinColumn(name = "user_id")
-    @JsonBackReference
     private User user;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
@@ -46,7 +50,7 @@ public class Rate {
     @JsonBackReference
     private Category category;
 
-    public Rate(Items item, User user, String comment, Boolean isApproved, Boolean isPositive, Category category) {
+    public Rate(Items item, User user, String comment, Boolean isApproved, Boolean isPositive, Category category, String createdDate) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.item = item;
@@ -55,6 +59,8 @@ public class Rate {
         this.isApproved = isApproved;
         this.isPositive = isPositive;
         this.category = category;
+        this.createdAt = createdDate;
+        this.updatedAt = null;
     }
 
     public Rate(Items item, UUID id, String comment) {

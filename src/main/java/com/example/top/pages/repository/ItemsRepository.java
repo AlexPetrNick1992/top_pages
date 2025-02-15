@@ -24,6 +24,9 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
     @Query(value = "select * from item i where name = :name", nativeQuery = true)
     Optional<Items> findByName(String name);
 
+    @Query(value = "select r.item from rate r where r.user_id = :userId and r.category_id = :categoryId", nativeQuery = true)
+    List<String> findByName(String userId, String categoryId);
+
     @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
             "from item i join rate r on r.item = i.id " +
             "where r.item in :listItems and r.ispositive = :isPositive group by i.id", nativeQuery = true)

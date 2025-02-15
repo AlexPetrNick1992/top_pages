@@ -32,4 +32,16 @@ public class ItemsController {
         return itemsService.createItems(itemsRequest);
     }
 
+    @GetMapping("/for_test")
+    public ResponseEntity<?> itemsForTest() {
+        return itemsService.getItemsListForTest();
+    }
+
+    @GetMapping("/users_rated_items")
+    public ResponseEntity<?> getUsersRatedItems(
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return itemsService.getUsersRatedItems(categoryId);
+    }
+
 }

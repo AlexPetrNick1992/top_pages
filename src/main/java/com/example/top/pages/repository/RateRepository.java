@@ -25,6 +25,9 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select * from rate r where id = :rateUUID", nativeQuery = true)
     Optional<Rate> getRateByUUID(String rateUUID);
 
-    @Query(value="select r.id, r.\"comment\", r.user_id, r.ispositive, r.isapproved, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)
+    @Query(value = "select * from rate r where r.item = :itemId", nativeQuery = true)
+    List<Rate> getRateByItem(String itemId);
+
+    @Query(value="select r.created_at, r.updated_at, r.id, r.\"comment\", r.user_id, r.ispositive, r.isapproved, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)
     Optional<Rate> getItemAndRateByUserAndItemAndCategory(String userUUID, String itemUUID, String categoryId);
 }

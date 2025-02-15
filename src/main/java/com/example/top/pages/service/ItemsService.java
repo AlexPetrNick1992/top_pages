@@ -3,12 +3,14 @@ package com.example.top.pages.service;
 import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
+import com.example.top.pages.models.User;
 import com.example.top.pages.payload.request.ItemsRequest;
 import com.example.top.pages.payload.response.ItemsListResponse;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
+import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @RequiredArgsConstructor
@@ -31,7 +31,13 @@ public class ItemsService {
     private final CategoryRepository categoryRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final PagesRepository pagesRepository;
+    private final UserRepository userRepository;
 
+    public ResponseEntity<?> getItemsListForTest() {
+        return ResponseEntity.ok(itemsRepository.findAll());
+    }
+
+    // TODO: Оптимизировать
     public ResponseEntity<?> getItemsList(String categoryId) {
         List<ItemsCategory> itemsList = itemsRepository.getItemsByCategory(categoryId);
         return ResponseEntity.ok(new ItemsListResponse(itemsList));
@@ -62,4 +68,11 @@ public class ItemsService {
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Items created %s", itemsRequest.getItemsName()), itemCreated.getId().toString());
     }
 
+    public ResponseEntity<?> getUsersRatedItems(String categoryId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        return ResponseEntity.ok(new HashMap<>(){{
+            put("items_id", itemsRepository.findByName(userItem.getId().toString(), categoryId));
+        }});
+    }
 }

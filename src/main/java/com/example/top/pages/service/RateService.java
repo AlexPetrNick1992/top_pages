@@ -21,9 +21,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Data
 @RequiredArgsConstructor
@@ -159,17 +158,29 @@ public class RateService {
 
             Category category = categoryCheck.get();
             /* Админ isApproved = true */
-            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
+//            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
+            Boolean isApproved = true;
+
+            // Input
+            Date date = new Date(System.currentTimeMillis());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+            sdf.setTimeZone(TimeZone.getTimeZone("CET"));
+
             Rate rate = new Rate(
                     tempItem,
                     userItem,
                     rateAction.getComment(),
                     isApproved,
                     rateAction.getIsPositive(),
-                    category
+                    category,
+                    sdf.format(date)
             );
             rateRepository.save(rate);
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));
         }
+    }
+
+    public ResponseEntity<?> getRatesFromItem(String itemId) {
+        return ResponseEntity.ok(rateRepository.getRateByItem(itemId));
     }
 }

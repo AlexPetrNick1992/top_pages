@@ -57,6 +57,7 @@ public class PagesService {
         List<ReturnCountRates> temp = itemRates.stream().peek(items -> mappedList.put(
                 items.getId(),
                 new HashMap<String, Object>() {{
+                    put("id", items.getId());
                     put("count_rates", items.getCount());
                     put("name", items.getName());
                     put("desc", items.getDescription());
