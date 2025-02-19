@@ -60,6 +60,9 @@ public class UserServiceImpl implements UserDetailsService {
     }
 
     public ResponseEntity<?> registration(RegistrationUser registrationUser) {
+        if (registrationUser.getEmail().isEmpty()) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "E-Mail пустой"), HttpStatus.BAD_REQUEST);
+        }
         if (findByEmail(registrationUser.getEmail()).isPresent()) {
             return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким email уже создан"), HttpStatus.BAD_REQUEST);
         }
@@ -71,6 +74,13 @@ public class UserServiceImpl implements UserDetailsService {
                 )
         );
         user.setRoles(List.of(rolesRepository.findByName("ROLE_USER")));
+        if (registrationUser.getUsername() != null && !registrationUser.getUsername().isEmpty()) {
+            Optional<User> userWithUsername = userRepository.findUserByName(registrationUser.getUsername());
+            if (userWithUsername.isPresent()) {
+                return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь с таким username уже создан"), HttpStatus.BAD_REQUEST);
+            }
+            user.setName(registrationUser.getUsername());
+        }
         createNewUser(user);
         return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
                 String.format("Пользователь %s зарегистрирован", registrationUser.getEmail())
@@ -81,9 +91,20 @@ public class UserServiceImpl implements UserDetailsService {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
         Optional<UserInfoResponse> userInfo = rateRepository.getUserInfoWithARates(String.valueOf(userItem.getId()));
+
         if (userInfo.isPresent()) {
             return ResponseEntity.ok(userInfo.get());
+        } else if (!userItem.getEmail().isEmpty()) {
+            return ResponseEntity.ok(new UserInfoResponse(
+                userItem.getId().toString(), userItem.getName(), userItem.getEmail(), userItem.getDateOfBirth().toString(), (long) 0
+            ));
         }
         return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь не найден"), HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<?> checkEmail(String email) {
+        Optional<User> checkUser = userRepository.findUserByEmail(email);
+        if (checkUser.isPresent()) return ResponseEntity.ok(new CheckEmailResponse(true));
+        else return ResponseEntity.ok(new CheckEmailResponse(false));
     }
 }

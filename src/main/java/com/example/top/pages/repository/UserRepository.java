@@ -18,5 +18,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query(value = "select * from users where email = :email", nativeQuery = true)
     User findCheckedUserByEmail(String email);
 
-
+    @Query(value = "select * from users u where u.\"name\" = :name", nativeQuery = true)
+    Optional<User> findUserByName(String name);
 }

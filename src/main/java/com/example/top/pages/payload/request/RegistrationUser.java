@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 public class RegistrationUser {
     private final String email;
     private final String password;
+    private final String username;
     private final String confirmPassword;
 
 }

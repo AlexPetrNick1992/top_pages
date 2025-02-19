@@ -31,6 +31,14 @@ public class User {
     @Column(name = "birthday")
     private LocalDate dateOfBirth;
 
+    public User(String email, String password, String username, Collection<Roles> roles) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.email = email;
+        this.password = password;
+        this.name = username;
+        this.roles = roles;
+    }
     public User(String email, String password, Collection<Roles> roles) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());

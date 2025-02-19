@@ -26,7 +26,7 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select u.id, u.\"name\", u.email, u.birthday, count(r.id) " +
             "from rate r join users u on r.user_id = u.id " +
             "where u.id = :userUUID " +
-            "group by u.id \n", nativeQuery = true)
+            "group by u.id", nativeQuery = true)
     Optional<UserInfoResponse> getUserInfoWithARates(String userUUID);
 
     @Query(value = "select * from rate r where id = :rateUUID", nativeQuery = true)
