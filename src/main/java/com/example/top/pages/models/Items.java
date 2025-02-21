@@ -35,13 +35,28 @@ public class Items {
     @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
 
-    public Items(String name, Collection<Category> category, Collection<Pages> pages, Boolean isApproved) {
+    public Items(String name, List<Category> category, List<Pages> pages, Boolean isApproved) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.category = category;
         this.description = "No description";
         this.pages = pages;
+        this.isApproved = isApproved;
+    }
+    public Items(String name, List<Pages> pages, Boolean isApproved) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.name = name;
+        this.description = "No description";
+        this.pages = pages;
+        this.isApproved = isApproved;
+    }
+    public Items(String name, Boolean isApproved) {
+        UUID uuid = UUID.randomUUID();
+        this.id = UUID.fromString(uuid.toString());
+        this.name = name;
+        this.description = "No description";
         this.isApproved = isApproved;
     }
 
@@ -65,7 +80,7 @@ public class Items {
             joinColumns = @JoinColumn(name = "item_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    private Collection<Category> category;
+    private List<Category> category;
 
     @JsonIgnore
     @ManyToMany(cascade =

@@ -4,14 +4,17 @@ import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.Pages;
 import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.request.ItemInPagesCreate;
 import com.example.top.pages.payload.request.PagesRequest;
 import com.example.top.pages.payload.request.PagesUpdate;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
+import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
 import com.example.top.pages.repository.models.Pages.PagesItems;
+import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
 import com.example.top.pages.repository.models.Pages.ReturnCountRates;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,117 +25,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PagesService {
-
     private final PagesRepository pagesRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
     private final ItemsRepository itemsRepository;
 
-    public Map<String, Object> transformPagesListToDict(List<PagesCategory> listObject) {
-        Map<String, Object> mappedList = new HashMap<>();
-
-        List<PagesCategory> temp = listObject.stream().peek(pages -> mappedList.put(
-                pages.getPagesId(),
-                new HashMap<>() {{
-                    put("title", pages.getTitle());
-                    put("description_pages", pages.getDescriptionPages());
-                    put("isApproved", pages.getIsApproved());
-                    put("category", new HashMap<>() {{
-                        put("id", pages.getCategoryId());
-                        put("name", pages.getNameCategory());
-                    }});
-                }}
-        )).toList();
-        log.debug(temp.toString());
-        return mappedList;
-    }
-
-    public Map<String, Object> parsedCountRatesItems(List<ReturnCountRates> itemRates) {
-        Map<String, Object> mappedList = new HashMap<>();
-        List<ReturnCountRates> temp = itemRates.stream().peek(items -> mappedList.put(
-                items.getId(),
-                new HashMap<String, Object>() {{
-                    put("id", items.getId());
-                    put("count_rates", items.getCount());
-                    put("name", items.getName());
-                    put("desc", items.getDescription());
-                }}
-        )).toList();
-        System.out.println("mappedList");
-        System.out.println(mappedList);
-
-        log.debug(temp.toString());
-        return mappedList;
-    }
-
-    public Map<String, List<String>> mappedItemsByPage(List<PagesItems> pagesItems) {
-        Map<String, List<String>> groupedItems = new HashMap<>();
-        List<PagesItems> temp = pagesItems.stream().peek(items -> {
-            if (groupedItems.containsKey(items.getPagesId())) {
-                List<String> tempList = new ArrayList<>(groupedItems.get(items.getPagesId()));
-                tempList.add(items.getItemsId());
-                groupedItems.put(items.getPagesId(), tempList);
-            } else {
-                groupedItems.put(items.getPagesId(), Collections.singletonList(items.getItemsId()));
-            }
-        }).toList();
-        log.debug(temp.toString());
-        log.debug(temp.toString());
-        return groupedItems;
-    }
-
-    public List<HashMap<Object, Object>> getPagesInfo(List<PagesCategory> listPages) {
-        List<String> pagesListIds = listPages.stream().map(PagesCategory::getPagesId).toList();
-        /* Получаем pages */
-        Map<String, Object> pagesParsed = transformPagesListToDict(listPages);
-        /* Получаем pages_items */
-        List<PagesItems> pagesItemsList = pagesRepository.getItemsPages(pagesListIds);
-        Map<String, List<String>> groupedItemsByPages = mappedItemsByPage(pagesItemsList);
-        /* Получаем items count rates */
-        List<ReturnCountRates> itemsRates = itemsRepository.getCountRatesByItemsAll(
-                pagesItemsList.stream().map(PagesItems::getItemsId).toList()
-        );
-        Map<String, Object> parsedCounts = parsedCountRatesItems(itemsRates);
-        List<HashMap<Object, Object>> listOfPages = pagesListIds.stream().map(pages -> {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> pageInfo = (Map<String, Object>) pagesParsed.get(pages);
-            List<String> itemsByPages;
-            if (groupedItemsByPages.get(pages) == null) itemsByPages = new ArrayList<>();
-            else {
-                itemsByPages = groupedItemsByPages.get(pages);
-            }
-            return new HashMap<>() {{
-                put("id", pages);
-                put("title", pageInfo.get("title"));
-                put("description", pageInfo.get("description_pages"));
-                put("category", pageInfo.get("category"));
-                put("items", itemsByPages.stream().map(parsedCounts::get).toList());
-            }};
-        }).toList();
-        /* SORTED */
-
-        listOfPages = listOfPages.stream().map(page -> {
-            List<Map<String, Object>> listItems = (List<Map<String, Object>>) page.get("items");
-            List<Map<String, Object>> modifiableList = new ArrayList<>(listItems);
-            modifiableList.sort((item1, item2) -> {
-                return Long.compare((long) item2.get("count_rates"), (long) item1.get("count_rates"));
-            });
-            page.put("items", modifiableList);
-            return page;
-        }).toList();
-
-        return listOfPages;
-    }
-
     public ResponseEntity<?> getPagesList() {
-        List<PagesCategory> pagesList = pagesRepository.getAllPagesWithCategory();
-        return ResponseEntity.ok(getPagesInfo(pagesList));
+        return ResponseEntity.ok(getPagesInfo(pagesRepository.getAllPagesIds()));
     }
 
     public ResponseEntity<?> joinItem(String itemId, String pagesId) {
@@ -147,7 +51,7 @@ public class PagesService {
         Items item = itemCheck.get();
         Pages page = pagesCheck.get();
         /* Добавляем к item зависимость category */
-        Collection<Category> categoriesList = item.getCategory();
+        List<Category> categoriesList = item.getCategory();
         categoriesList.add(page.getCategory());
         item.setCategory(categoriesList);
         itemsRepository.save(item);
@@ -221,29 +125,8 @@ public class PagesService {
         if (pages.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
         }
-        PagesCategory originalPages = pages.get();
-        HashMap<Object, Object> infoPage = getPagesInfo(List.of(originalPages)).getFirst();
+        Map<String, Object> infoPage = getPagesInfo(List.of(pages_id)).getFirst();
         return ResponseEntity.ok(infoPage);
-    }
-
-    private List<Items> filterItems(List<Items> itemsList, String mode, String type) {
-        List<Items> filterItems = itemsList;
-        /* Фильтруем Rates isApproved*/
-        if (!Objects.equals(mode, "full")) {
-            /* Убираем все неподтвержденные items */
-            filterItems = filterItems.stream().filter(Items::getIsApproved).toList();
-            /* Убираем все неподтвержденные rates */
-            filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(Rate::isApproved).toList())).toList();
-        }
-        /* Фильтруем на позитивный и негативный */
-        if (type != null) {
-            if (Objects.equals(type, "negative")) {
-                filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(rate -> !rate.isPositive()).toList())).toList();
-            } else {
-                filterItems = filterItems.stream().peek(item -> item.setRate(item.getRate().stream().filter(Rate::isPositive).toList())).toList();
-            }
-        }
-        return filterItems;
     }
 
     public ResponseEntity<?> createPages(PagesRequest pagesRequest) {
@@ -266,6 +149,33 @@ public class PagesService {
             page.setDescriptionPages(description);
         }
         Pages infoCreated = pagesRepository.save(page);
+
+        if (!pagesRequest.getItemsRequestList().isEmpty()) {
+            List<Items> itemsForPage = new ArrayList<>();
+            List<Category> categoryList = new ArrayList<>();
+            categoryList.add(infoCreated.getCategory());
+            /* Если присутствует item проверяем наличие id или если его нет создаем новый item */
+            for (ItemInPagesCreate itemRequest: pagesRequest.getItemsRequestList()) {
+                if (itemRequest.getId() != null && !itemRequest.getId().isEmpty()) {
+                    Optional<Items> itemCheck = itemsRepository.findByStringUUID(itemRequest.getId());
+                    if (itemCheck.isEmpty()) return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Item %s not exists, check data", itemRequest.getId()), null);
+                    Items existItems = itemCheck.get();
+                    existItems.setCategory(categoryList);
+                    Items newItem = itemsRepository.save(existItems);
+                    itemsForPage.add(newItem);
+                } else {
+                    Items newItems = new Items(
+                            itemRequest.getItemsName(),
+                            roles.contains("ROLE_ADMIN")
+                    );
+                    newItems.setCategory(categoryList);
+                    Items newItem = itemsRepository.save(newItems);
+                    itemsForPage.add(newItem);
+                }
+            }
+            infoCreated.setItems(itemsForPage);
+            pagesRepository.save(infoCreated);
+        }
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully create", String.valueOf(infoCreated.getId()));
     }
 
@@ -288,7 +198,51 @@ public class PagesService {
     }
 
     public ResponseEntity<?> searchPages(String word) {
-        System.out.println(word);
         return ResponseEntity.ok(pagesRepository.searchTitlesByWord(word));
     }
+
+    public List<Map<String, Object>> getPagesInfo(List<String> pagesList) {
+        List<Map<String, Object>> readyList = new ArrayList<>();
+
+        for (String pagesId: pagesList) {
+            Pages pageEntity = pagesRepository.getStrickPagesByID(pagesId);
+            String categoryId = pageEntity.getCategory().getId().toString();
+            List<ItemsCategory> itemsId = itemsRepository.getItemsByCategory(categoryId);
+            List<PagesItemsExistedRates> existedRates = pagesRepository.getExistedRatesFromItemsByCategoryAndPages(pagesId, categoryId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", pagesId);
+            response.put("title", pageEntity.getTitle());
+            response.put("description", pageEntity.getDescriptionPages());
+            response.put("category", new HashMap<String, Object>() {{
+                put("id", pageEntity.getCategory().getId().toString());
+                put("name", pageEntity.getCategory().getName());
+            }});
+
+            /* Получаем итемы */
+            List<Map<String,Object>> itemsList = itemsId.stream().map(item -> {
+                List<PagesItemsExistedRates> listFilter = existedRates.stream().filter(it -> Objects.equals(it.getItemId(), item.getItemId())).toList();
+                Long countRates;
+                if (!listFilter.isEmpty()) countRates = listFilter.getFirst().getCount();
+                else countRates = 0L;
+                Map<String,Object> mappedItems = new HashMap<>();
+                mappedItems.put("name", item.getItemName());
+                mappedItems.put("id", item.getItemId());
+                mappedItems.put("desc", item.getDescription());
+                mappedItems. put("count_rates", countRates);
+                return mappedItems;
+            }).toList();
+
+            /* Сортируем итемы */
+            List<Map<String, Object>> modifiableList = new ArrayList<>(itemsList);
+            modifiableList.sort((item1, item2) -> {
+                return Long.compare((long) item2.get("count_rates"), (long) item1.get("count_rates"));
+            });
+
+            response.put("items", modifiableList);
+            readyList.add(response);
+        }
+
+        return readyList;
+    }
+
 }

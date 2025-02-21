@@ -1,9 +1,12 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Items;
+import com.example.top.pages.payload.response.ItemsSearch;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.example.top.pages.repository.models.Pages.ReturnCountRates;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -32,9 +35,14 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
             "where r.item in :listItems and r.ispositive = :isPositive group by i.id", nativeQuery = true)
     List<ReturnCountRates> getCountRatesByItems(List<String> listItems, Boolean isPositive);
 
+//    @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
+//            "from item i join rate r on r.item = i.id  " +
+//            "where r.item in :listItems " +
+//            "group by i.id " +
+//            "order by count(r.id) desc", nativeQuery = true)
     @Query(value = "select i.id, i.\"name\", i.description, count(r.id) " +
-            "from item i join rate r on r.item = i.id  " +
-            "where r.item in :listItems " +
+            "from item i left join rate r on i.id = r.item " +
+            "where i.id in :listItems " +
             "group by i.id " +
             "order by count(r.id) desc", nativeQuery = true)
     List<ReturnCountRates> getCountRatesByItemsAll(List<String> listItems);
@@ -46,4 +54,26 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
             "where c.id = :categoryId", nativeQuery = true)
     List<ItemsCategory> getItemsByCategory(String categoryId);
 
+    @Query(value = "select i.id as item_id, i.\"name\" as item_name, ic.category_id as category, i.description as description, i.isapproved " +
+            "from item i join item_category ic on i.id = ic.item_id " +
+            "join pages_items pi2 on i.id = pi2.items_id " +
+            "where pi2.pages_id = :pagesId", nativeQuery = true)
+    List<ItemsCategory> getItemsAndCategoryByPages(String pagesId);
+
+    @Query(value = "select * from item i where i.\"name\" = :name and i.id = :id", nativeQuery = true)
+    Items getExistingItemsByNameAndId(String name, String id);
+
+    @Query(value = "select i.id, i.\"name\", i.description   from item i where lower(i.\"name\") like %:word%", nativeQuery = true)
+    List<ItemsSearch> searchItems(String word);
+
+    @Transactional
+    @Modifying(clearAutomatically = true)
+    @Query(value = "INSERT INTO pages_items (pages_id, items_id) VALUES (:pageId, :itemId)", nativeQuery = true)
+    void saveItemToPages(String pageId, String itemId);
+
+    @Transactional
+    @Modifying(clearAutomatically = true)
+    @Query(value = "INSERT INTO item_category (category_id , item_id) VALUES (:categoryId, :itemId);", nativeQuery = true)
+    void saveItemToCategory(String categoryId, String itemId);
 }
+

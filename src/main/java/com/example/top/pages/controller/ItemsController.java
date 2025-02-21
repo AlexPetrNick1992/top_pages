@@ -44,4 +44,11 @@ public class ItemsController {
         return itemsService.getUsersRatedItems(categoryId);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchItem(
+            @RequestParam(required = true, name = "text") String text
+    ) {
+        return itemsService.searchItem(text);
+    }
+
 }

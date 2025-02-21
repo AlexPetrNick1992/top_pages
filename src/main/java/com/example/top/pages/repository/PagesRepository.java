@@ -5,6 +5,7 @@ import com.example.top.pages.models.Rate;
 import com.example.top.pages.payload.response.SearchPagesNames;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
 import com.example.top.pages.repository.models.Pages.PagesItems;
+import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -16,6 +17,20 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
 
     @Query(value = "select * from pages c where id = :uuid", nativeQuery = true)
     Optional<Pages> findByUUID(UUID uuid);
+
+    @Query(value = "select * from pages p where p.id = :id", nativeQuery = true)
+    Pages getStrickPagesByID(String id);
+
+    @Query(value = "select pi2.items_id from pages_items pi2 where pi2.pages_id = :pagesId", nativeQuery = true)
+    List<String> getItemsByPages(String pagesId);
+
+    @Query(value = "select pi2.items_id as item_id, count(r.id) as count " +
+            "from pages_items pi2 " +
+            "left join rate r on pi2.items_id = r.item " +
+            "where pi2.pages_id = :pagesId and r.category_id = :categoryId " +
+            "group by pi2.items_id\n", nativeQuery = true)
+    List<PagesItemsExistedRates> getExistedRatesFromItemsByCategoryAndPages(String pagesId, String categoryId);
+
     @Query(value = "select p.id, p.title, p.description_pages, p.category, p.isapproved from pages_items pi2 left join pages p on p.id = pi2.pages_id", nativeQuery = true)
     List<Pages> getListPagesWithItems();
     @Query(value = "select * from pages c where id = :uuid", nativeQuery = true)

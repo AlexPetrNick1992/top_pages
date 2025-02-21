@@ -75,4 +75,8 @@ public class ItemsService {
             put("items_id", itemsRepository.findByName(userItem.getId().toString(), categoryId));
         }});
     }
+
+    public ResponseEntity<?> searchItem(String text) {
+        return ResponseEntity.ok(itemsRepository.searchItems(text));
+    }
 }

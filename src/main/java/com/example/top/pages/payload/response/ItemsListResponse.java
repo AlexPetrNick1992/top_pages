@@ -1,7 +1,5 @@
 package com.example.top.pages.payload.response;
 
-import com.example.top.pages.models.Category;
-import com.example.top.pages.models.Items;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
