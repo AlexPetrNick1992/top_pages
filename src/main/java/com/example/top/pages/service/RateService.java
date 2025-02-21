@@ -181,10 +181,10 @@ public class RateService {
         }
     }
 
-    public ResponseEntity<?> getRatesFromItem(String itemId) {
-        return ResponseEntity.ok(rateRepository.getRateByItem(itemId, 3));
+    public ResponseEntity<?> getRatesFromItem(String itemId, String categoryId) {
+        return ResponseEntity.ok(rateRepository.getRateByItem(itemId, categoryId, 3));
     }
-    public ResponseEntity<?> getAllRatesFromItem(String itemId) {
-        return ResponseEntity.ok(rateRepository.getRateByItemWithoutLimit(itemId));
+    public ResponseEntity<?> getAllRatesFromItem(String itemId, String categoryId) {
+        return ResponseEntity.ok(rateRepository.getRateByItemWithoutLimit(itemId, categoryId));
     }
 }

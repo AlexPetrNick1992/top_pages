@@ -22,13 +22,15 @@ public class RateController {
 
     @GetMapping(path = "/item")
     public ResponseEntity<?> getItemsRate(
-            @RequestParam(required = true, name = "id") String itemId
-    ) {return rateService.getRatesFromItem(itemId);}
+            @RequestParam(required = true, name = "id") String itemId,
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {return rateService.getRatesFromItem(itemId, categoryId);}
 
     @GetMapping(path = "/item_all")
     public ResponseEntity<?> getAllItemsRate(
-            @RequestParam(required = true, name = "id") String itemId
-    ) {return rateService.getAllRatesFromItem(itemId);}
+            @RequestParam(required = true, name = "id") String itemId,
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {return rateService.getAllRatesFromItem(itemId, categoryId);}
 
     @GetMapping
     public ResponseEntity<?> getListRatesForUser() {
