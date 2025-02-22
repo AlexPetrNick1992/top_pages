@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
-import java.util.Collection;
 import java.util.UUID;
 
 @Entity
@@ -17,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name="action_history", schema="public")
 public class ActionHistory {
+    @Id
     @Column(name = "id")
     private String id;
     @Column(name = "history")

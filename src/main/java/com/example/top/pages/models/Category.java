@@ -1,6 +1,7 @@
 package com.example.top.pages.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,13 +25,18 @@ public class Category {
     private String name;
     @Column(name = "description")
     private String description;
+    @JsonProperty("created_at")
     @Column(name = "created_at")
     private String createdAt;
+    @JsonIgnore
+    @JsonProperty("updated_at")
     @Column(name = "updated_at")
     private String updatedAt;
 
+    @JsonProperty("created_by")
     @JsonIgnore
     @ManyToOne
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
     @JsonIgnore

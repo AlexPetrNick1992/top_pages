@@ -136,6 +136,10 @@ public class RateService {
         } else {
             tempItem = itemsCheck.get();
         }
+        List<String> listIdCategories = itemsCheck.get().getCategory().stream().map(cat ->  cat.getId().toString()).toList();
+        if (!listIdCategories.contains(rateAction.getCategoryId())){
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This category not contain this item", rateAction.getItemId());
+        }
 
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
@@ -147,7 +151,6 @@ public class RateService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Category not found", rateAction.getCategoryId());
         } else {
             /* Если существует - то нельзя повторно */
-            System.out.println(rateAction.getCategoryId());
             Optional<Rate> rateEntity = rateRepository.getItemAndRateByUserAndItemAndCategory(
                     userItem.getId().toString(),
                     String.valueOf(tempItem.getId()),
@@ -160,8 +163,7 @@ public class RateService {
 
             Category category = categoryCheck.get();
             /* Админ isApproved = true */
-//            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
-            Boolean isApproved = true;
+            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
 
             Rate rate = new Rate(
                     tempItem,

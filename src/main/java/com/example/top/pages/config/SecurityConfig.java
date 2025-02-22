@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
                         .requestMatchers("/api/v1/rate").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/items").authenticated()
                         .requestMatchers("api/v1/user/info").authenticated()
                         .requestMatchers("api/items/users_rated_items").authenticated()
                         .requestMatchers("/api/v1/rate/approve").hasRole("ADMIN")

@@ -11,6 +11,7 @@ import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
+import com.example.top.pages.utils.DateWorker;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class ItemsService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final PagesRepository pagesRepository;
     private final UserRepository userRepository;
+    private final DateWorker dateWorker;
 
     public ResponseEntity<?> getItemsListForTest() {
         return ResponseEntity.ok(itemsRepository.findAll());
@@ -45,6 +47,7 @@ public class ItemsService {
     public ResponseEntity<?> createItems(ItemsRequest itemsRequest) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
 
         Optional<Items> itemsFind = itemsRepository.findByName(String.valueOf(itemsRequest.getItemsName()));
         if (itemsFind.isPresent()) {
@@ -60,7 +63,8 @@ public class ItemsService {
                 itemsRequest.getItemsName(),
                 List.of(categoryFind.get()),
                 List.of(categoryFind.get().getPages()),
-                roles.contains("ROLE_ADMIN")
+                roles.contains("ROLE_ADMIN"),
+                user, dateWorker.getCurrentTimeISO()
         );
         if (itemsRequest.getDescription() != null) {items.setDescription(itemsRequest.getDescription());}
         Items itemCreated = itemsRepository.save(items);

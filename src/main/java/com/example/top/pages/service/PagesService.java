@@ -1,9 +1,6 @@
 package com.example.top.pages.service;
 
-import com.example.top.pages.models.Category;
-import com.example.top.pages.models.Items;
-import com.example.top.pages.models.Pages;
-import com.example.top.pages.models.Rate;
+import com.example.top.pages.models.*;
 import com.example.top.pages.payload.request.ItemInPagesCreate;
 import com.example.top.pages.payload.request.PagesRequest;
 import com.example.top.pages.payload.request.PagesUpdate;
@@ -11,11 +8,13 @@ import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
+import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
 import com.example.top.pages.repository.models.Pages.PagesItems;
 import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
 import com.example.top.pages.repository.models.Pages.ReturnCountRates;
+import com.example.top.pages.utils.DateWorker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +33,8 @@ public class PagesService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
     private final ItemsRepository itemsRepository;
+    private final UserRepository userRepository;
+    private final DateWorker dateWorker;
 
     public ResponseEntity<?> getPagesList() {
         return ResponseEntity.ok(getPagesInfo(pagesRepository.getAllPagesIds()));
@@ -132,6 +133,8 @@ public class PagesService {
     public ResponseEntity<?> createPages(PagesRequest pagesRequest) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         Optional<Category> categoryCheck = categoryRepository.findCategoryByName(pagesRequest.getCategory());
         if (categoryCheck.isPresent()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Pages with category %s - is exists", pagesRequest.getCategory()), null);
@@ -140,10 +143,16 @@ public class PagesService {
         if (pageCheck.isPresent()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("Pages %s - is exists", pagesRequest.getName()), null);
         }
-        Category category = new Category(pagesRequest.getCategory());
+        Category category = new Category(pagesRequest.getCategory(), user, dateWorker.getCurrentTimeISO());
         categoryRepository.save(category);
 
-        Pages page = new Pages(category, roles.contains("ROLE_ADMIN"), pagesRequest.getName());
+        Pages page = new Pages(
+                category,
+                roles.contains("ROLE_ADMIN"),
+                pagesRequest.getName(),
+                user,
+                dateWorker.getCurrentTimeISO()
+        );
         String description = pagesRequest.getDescription();
         if (description != null && !description.isEmpty()) {
             page.setDescriptionPages(description);
@@ -166,7 +175,9 @@ public class PagesService {
                 } else {
                     Items newItems = new Items(
                             itemRequest.getItemsName(),
-                            roles.contains("ROLE_ADMIN")
+                            roles.contains("ROLE_ADMIN"),
+                            user,
+                            dateWorker.getCurrentTimeISO()
                     );
                     newItems.setCategory(categoryList);
                     Items newItem = itemsRepository.save(newItems);

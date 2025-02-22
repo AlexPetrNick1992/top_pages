@@ -1,5 +1,7 @@
 package com.example.top.pages.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +26,19 @@ public class Pages {
     private String descriptionPages;
     @Column(name = "isapproved")
     private boolean isApproved;
+    @JsonProperty("created_at")
+    @Column(name = "created_at")
+    private String createdAt;
+    @JsonIgnore
+    @JsonProperty("updated_at")
+    @Column(name = "updated_at")
+    private String updatedAt;
+
+    @JsonProperty("created_by")
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
     @Override
     public String toString() {
@@ -49,20 +64,24 @@ public class Pages {
     @OneToOne @JoinColumn(name = "category")
     private Category category;
 
-    public Pages(Category category, boolean isApproved, String descriptionPages, String title) {
+    public Pages(Category category, boolean isApproved, String descriptionPages, String title, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
         this.isApproved = isApproved;
         this.descriptionPages = descriptionPages;
         this.title = title;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
     }
 
-    public Pages(Category category, boolean isApproved, String title) {
+    public Pages(Category category, boolean isApproved, String title, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
         this.isApproved = isApproved;
         this.title = title;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
     }
 }
