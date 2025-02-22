@@ -1,6 +1,5 @@
 package com.example.top.pages.service.impl;
 
-import com.example.top.pages.models.Rate;
 import com.example.top.pages.payload.response.*;
 import com.example.top.pages.payload.request.JwtTokenRequest;
 import com.example.top.pages.payload.request.RegistrationUser;
@@ -37,7 +36,6 @@ public class UserServiceImpl implements UserDetailsService {
     private final RateRepository rateRepository;
     private final ActionHistoryService actionHistoryService;
 
-    public List<User> getUserList() {return userRepository.findAll();}
     public Optional<User> findByEmail(String email) {return userRepository.findUserByEmail(email);}
     public void createNewUser(User user) {userRepository.save(user);}
 

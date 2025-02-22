@@ -22,7 +22,6 @@ public class ActionHistoryService {
         CATEGORY_CREATE,
         DELETED_RATE,
         DELETED_ITEM,
-        DELETED_PAGES,
         DELETED_CATEGORY,
         USER_REGISTER
     }
@@ -93,8 +92,6 @@ public class ActionHistoryService {
                     String.format("Администратор %s удалил голос - %s", username, addedParameter);
             case TypeHistory.DELETED_ITEM ->
                     String.format("Администратор %s удалил сущность - %s", username, addedParameter);
-            case TypeHistory.DELETED_PAGES ->
-                    String.format("Администратор %s удалил новую страницу - %s", username, addedParameter);
             case TypeHistory.DELETED_CATEGORY ->
                     String.format("Администратор %s удалил новую категортю - %s", username, addedParameter);
             case TypeHistory.USER_REGISTER ->

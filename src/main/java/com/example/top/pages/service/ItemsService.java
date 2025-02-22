@@ -33,6 +33,7 @@ public class ItemsService {
     private final PagesRepository pagesRepository;
     private final UserRepository userRepository;
     private final DateWorker dateWorker;
+    private final ActionHistoryService actionHistoryService;
 
     public ResponseEntity<?> getItemsListForTest() {
         return ResponseEntity.ok(itemsRepository.findAll());
@@ -68,6 +69,9 @@ public class ItemsService {
         );
         if (itemsRequest.getDescription() != null) {items.setDescription(itemsRequest.getDescription());}
         Items itemCreated = itemsRepository.save(items);
+        actionHistoryService.createHistoryByType(
+                ActionHistoryService.TypeHistory.ITEM_CREATE, user, itemsRequest.getItemsName()
+        );
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, String.format("Items created %s", itemsRequest.getItemsName()), itemCreated.getId().toString());
     }
 

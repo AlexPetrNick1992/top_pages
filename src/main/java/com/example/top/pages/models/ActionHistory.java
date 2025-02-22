@@ -15,14 +15,12 @@ import java.util.UUID;
 @Table(name="action_history", schema="public")
 public class ActionHistory {
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     @Column(name = "history")
     private String history;
 
     public ActionHistory(String history, User user) {
-        UUID uuid = UUID.randomUUID();
-        this.id = uuid.toString();
         this.history = history;
         this.user = user;
     }

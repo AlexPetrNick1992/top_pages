@@ -35,6 +35,7 @@ public class RateService {
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
     private final DateWorker dateWorker;
+    private final ActionHistoryService actionHistoryService;
 
     public ResponseEntity<?> getListRatesForUser() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
@@ -44,6 +45,9 @@ public class RateService {
     }
 
     public ResponseEntity<?> approve(String rate_id, String category_id) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         /* Проверка категории */
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(category_id);
         if (categoryCheck.isEmpty()) {
@@ -59,10 +63,19 @@ public class RateService {
         }
         rate.setApproved(true);
         rateRepository.save(rate);
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.APPROVED_RATE,
+                String.format("%s(%s)", user.getName(), user.getId().toString()),
+                rate_id,
+                rate.getUser()
+        );
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully approved", rate_id);
     }
 
     public ResponseEntity<?> disprove(String rate_id, String category_id) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         /* Проверка категории */
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(category_id);
         if (categoryCheck.isEmpty()) {
@@ -78,6 +91,12 @@ public class RateService {
         }
         rate.setApproved(false);
         rateRepository.save(rate);
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.DISAPPROVED_RATE,
+                String.format("%s(%s)", user.getName(), user.getId().toString()),
+                rate_id,
+                rate.getUser()
+        );
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully disprove", rate_id);
     }
 
@@ -85,6 +104,8 @@ public class RateService {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         String userContextEmail = contextUser.getPrincipal().toString();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         /* Проверка категории */
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(category_id);
         if (categoryCheck.isEmpty()) {
@@ -100,6 +121,12 @@ public class RateService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "User hasn't permission to delete this rate", null);
         }
         rateRepository.delete(rate);
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.DELETED_RATE,
+                String.format("%s(%s)", user.getName(), user.getId().toString()),
+                rate_id,
+                rate.getUser()
+        );
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully delete", rate_id);
     }
 
@@ -175,6 +202,7 @@ public class RateService {
                     dateWorker.getCurrentTimeISO()
             );
             rateRepository.save(rate);
+            actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.VOTED, userItem, rate.getId().toString());
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));
         }
     }

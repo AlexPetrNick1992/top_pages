@@ -11,9 +11,7 @@ import com.example.top.pages.repository.PagesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
-import com.example.top.pages.repository.models.Pages.PagesItems;
 import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
-import com.example.top.pages.repository.models.Pages.ReturnCountRates;
 import com.example.top.pages.utils.DateWorker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +33,7 @@ public class PagesService {
     private final ItemsRepository itemsRepository;
     private final UserRepository userRepository;
     private final DateWorker dateWorker;
+    private final ActionHistoryService actionHistoryService;
 
     public ResponseEntity<?> getPagesList() {
         return ResponseEntity.ok(getPagesInfo(pagesRepository.getAllPagesIds()));
@@ -69,6 +68,9 @@ public class PagesService {
     }
 
     public ResponseEntity<?> deletePages(String pagesId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pagesId);
         if (pagesCheck.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pagesId);
@@ -76,11 +78,20 @@ public class PagesService {
             Pages page = pagesCheck.get();
             Category category = categoryRepository.findByUUIDStringStrick(String.valueOf(page.getCategory().getId()));
             categoryRepository.delete(category);
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.DELETED_CATEGORY,
+                    String.format("%s(%s)", user.getName(), user.getId().toString()),
+                    page.getTitle(),
+                    page.getCreatedBy()
+                    );
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully deleted", String.valueOf(page.getId()));
         }
     }
 
     public ResponseEntity<?> approvePages(String pageId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pageId);
         if (pagesCheck.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
@@ -91,11 +102,20 @@ public class PagesService {
             }
             page.setApproved(true);
             pagesRepository.save(page);
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.APPROVED_PAGES, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
+            );
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.APPROVED_CATEGORY, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
+            );
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully approved", null);
         }
     }
 
     public ResponseEntity<?> disprovePages(String pageId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         Optional<Pages> pagesCheck = pagesRepository.findByUUIDString(pageId);
         if (pagesCheck.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
@@ -106,6 +126,12 @@ public class PagesService {
             }
             page.setApproved(false);
             pagesRepository.save(page);
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.DISAPPROVED_PAGES, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
+            );
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.DISAPPROVED_CATEGORY, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
+            );
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully disprove", null);
         }
     }
@@ -158,6 +184,8 @@ public class PagesService {
             page.setDescriptionPages(description);
         }
         Pages infoCreated = pagesRepository.save(page);
+        actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.PAGES_CREATE, user, pagesRequest.getName());
+        actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.CATEGORY_CREATE, user, pagesRequest.getName());
 
         if (!pagesRequest.getItemsRequestList().isEmpty()) {
             List<Items> itemsForPage = new ArrayList<>();
@@ -181,6 +209,7 @@ public class PagesService {
                     );
                     newItems.setCategory(categoryList);
                     Items newItem = itemsRepository.save(newItems);
+                    actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.ITEM_CREATE, user, itemRequest.getItemsName());
                     itemsForPage.add(newItem);
                 }
             }

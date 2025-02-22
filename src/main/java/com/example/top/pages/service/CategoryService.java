@@ -63,16 +63,14 @@ public class CategoryService {
         }
         Category category = categoryCheck.get();
         categoryRepository.delete(category);
-        if (roles.contains("ROLE_ADMIN")) {
-            actionHistoryService.createHistoryByTypeWithAdmin(
-                    ActionHistoryService.TypeHistoryAdmin.DELETED_CATEGORY, userItem.getName(),
-                    category.getName(), category.getCreatedBy()
-            );
-        } else {
-            actionHistoryService.createHistoryByType(
-                    ActionHistoryService.TypeHistory.DELETED_CATEGORY, userItem, category.getName()
-            );
-        }
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.DELETED_CATEGORY, userItem.getName(),
+                category.getName(), category.getCreatedBy()
+        );
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.DELETED_PAGES, userItem.getName(),
+                category.getName(), category.getCreatedBy()
+        );
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Category successfully delete", categoryId);
     }
 
