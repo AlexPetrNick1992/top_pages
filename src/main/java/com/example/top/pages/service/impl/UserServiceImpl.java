@@ -8,6 +8,7 @@ import com.example.top.pages.repository.RateRepository;
 import com.example.top.pages.repository.RolesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.models.User;
+import com.example.top.pages.service.ActionHistoryService;
 import com.example.top.pages.utils.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ public class UserServiceImpl implements UserDetailsService {
     private final JwtTokenUtils jwtTokenUtils;
     private final PasswordEncoder passwordEncoder;
     private final RateRepository rateRepository;
+    private final ActionHistoryService actionHistoryService;
 
     public List<User> getUserList() {return userRepository.findAll();}
     public Optional<User> findByEmail(String email) {return userRepository.findUserByEmail(email);}
@@ -82,6 +84,11 @@ public class UserServiceImpl implements UserDetailsService {
             user.setName(registrationUser.getUsername());
         }
         createNewUser(user);
+        actionHistoryService.createHistoryByType(
+                ActionHistoryService.TypeHistory.USER_REGISTER,
+                user,
+                user.getId().toString()
+                );
         return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
                 String.format("Пользователь %s зарегистрирован", registrationUser.getEmail())
         ));

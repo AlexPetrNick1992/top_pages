@@ -13,6 +13,7 @@ import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.RateRepository;
 import com.example.top.pages.repository.UserRepository;
+import com.example.top.pages.utils.DateWorker;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ public class RateService {
     private final UserRepository userRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
     private final CategoryRepository categoryRepository;
+    private final DateWorker dateWorker;
 
     public ResponseEntity<?> getListRatesForUser() {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
@@ -137,7 +139,6 @@ public class RateService {
 
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
-        System.out.println(contextUser.getPrincipal().toString());
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
 
         /* Категория */
@@ -162,11 +163,6 @@ public class RateService {
 //            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
             Boolean isApproved = true;
 
-            // Input
-            Date date = new Date(System.currentTimeMillis());
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-            sdf.setTimeZone(TimeZone.getTimeZone("CET"));
-
             Rate rate = new Rate(
                     tempItem,
                     userItem,
@@ -174,7 +170,7 @@ public class RateService {
                     isApproved,
                     rateAction.getIsPositive(),
                     category,
-                    sdf.format(date)
+                    dateWorker.getCurrentTimeISO()
             );
             rateRepository.save(rate);
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));

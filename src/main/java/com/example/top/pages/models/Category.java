@@ -20,15 +20,23 @@ public class Category {
     @Id
     @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID id;
-
     @Column(name = "name")
     private String name;
     @Column(name = "description")
     private String description;
+    @Column(name = "created_at")
+    private String createdAt;
+    @Column(name = "updated_at")
+    private String updatedAt;
+
+    @JsonIgnore
+    @ManyToOne
+    private User createdBy;
 
     @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "category")
     private Pages pages;
+
 
     @JsonIgnore
     @ManyToMany(cascade =
@@ -45,17 +53,22 @@ public class Category {
     )
     private Collection<Items> items;
 
-    public Category(String name, String description) {
+    public Category(String name, String description, User createdBy, String createdAt) {
+
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.description = description;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
     }
 
-    public Category(String name) {
+    public Category(String name, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
+        this.createdBy = createdBy;
+        this.createdAt = createdAt;
     }
 
     public Category(UUID id) {

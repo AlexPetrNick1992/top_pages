@@ -1,13 +1,17 @@
 package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
+import com.example.top.pages.models.User;
 import com.example.top.pages.payload.response.CategoryByPageReponse;
 import com.example.top.pages.payload.response.ResponseEntityAppResponse;
 import com.example.top.pages.repository.CategoryRepository;
+import com.example.top.pages.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +24,8 @@ import java.util.UUID;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final ResponseEntityAppResponse responseEntityAppResponse;
+    private final ActionHistoryService actionHistoryService;
+    private final UserRepository userRepository;
 
     public List<Category> getCategoryList() {
         return categoryRepository.findAll();
@@ -47,12 +53,26 @@ public class CategoryService {
     }
 
     public ResponseEntity<?> deleteCategory(String categoryId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(categoryId);
         if (categoryCheck.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Category not exists", categoryId);
         }
         Category category = categoryCheck.get();
         categoryRepository.delete(category);
+        if (roles.contains("ROLE_ADMIN")) {
+            actionHistoryService.createHistoryByTypeWithAdmin(
+                    ActionHistoryService.TypeHistoryAdmin.DELETED_CATEGORY, userItem.getName(),
+                    category.getName(), category.getCreatedBy()
+            );
+        } else {
+            actionHistoryService.createHistoryByType(
+                    ActionHistoryService.TypeHistory.DELETED_CATEGORY, userItem, category.getName()
+            );
+        }
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Category successfully delete", categoryId);
     }
 
