@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RateRepository extends JpaRepository<Rate, String> {
-    @Query(value = "select * from rate r where user_id = :userUUID", nativeQuery = true)
+    @Query(value = "select * from rate r where user_id = :userUUID and r.status = 2", nativeQuery = true)
     List<Rate> getListRatesByIdUser(String userUUID);
 
     @Query(value = "select * from rate r where user_id = :userUUID and category_id = :categoryUUID", nativeQuery = true)
@@ -25,10 +25,10 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select * from rate r where id = :rateUUID", nativeQuery = true)
     Optional<Rate> getRateByUUID(String rateUUID);
 
-    @Query(value = "select * from rate r where r.item = :itemId and r.category_id = :categoryId order by created_at desc limit :limit", nativeQuery = true)
+    @Query(value = "select * from rate r where r.item = :itemId and r.category_id = :categoryId and r.status = 2 order by created_at desc limit :limit", nativeQuery = true)
     List<Rate> getRateByItem(String itemId, String categoryId, Integer limit);
 
-    @Query(value = "select * from rate r where r.item = :itemId and r.category_id = :categoryId order by created_at desc", nativeQuery = true)
+    @Query(value = "select * from rate r where r.item = :itemId and r.category_id = :categoryId and r.status = 2 order by created_at desc", nativeQuery = true)
     List<Rate> getRateByItemWithoutLimit(String itemId, String categoryId);
 
     @Query(value="select r.created_at, r.updated_at, r.id, r.\"comment\", r.user_id, r.ispositive, r.status, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)

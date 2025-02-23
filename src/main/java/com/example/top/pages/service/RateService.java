@@ -162,21 +162,22 @@ public class RateService {
 
     @Transactional
     public ResponseEntity<?> rateToItem(RateAction rateAction) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
         Items tempItem;
+
         Optional<Items> itemsCheck = itemsRepository.findByStringUUID(rateAction.getItemId());
         if (itemsCheck.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Item not found", rateAction.getItemId());
-        } else {
-            tempItem = itemsCheck.get();
         }
+        tempItem = itemsCheck.get();
+
         List<String> listIdCategories = itemsCheck.get().getCategory().stream().map(cat ->  cat.getId().toString()).toList();
         if (!listIdCategories.contains(rateAction.getCategoryId())){
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This category not contain this item", rateAction.getItemId());
         }
-
-        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
-        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
-        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        if (tempItem.getStatus() != StatusEntity.APPROVED) return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This item not approved", rateAction.getItemId());
 
         /* Категория */
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(rateAction.getCategoryId());
@@ -193,9 +194,8 @@ public class RateService {
                 String username = rateEntity.get().getItem().getName();
                 return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, String.format("User has rate on item %s", username), null);
             }
-
             Category category = categoryCheck.get();
-            /* Админ isApproved = true */
+
             StatusEntity newStatus;
             if (roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED")) newStatus = StatusEntity.APPROVED;
             else newStatus = StatusEntity.WAIT_APPROVE;

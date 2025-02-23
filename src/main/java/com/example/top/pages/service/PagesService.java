@@ -159,6 +159,7 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not exists", pages_id);
         }
         Map<String, Object> infoPage = getPagesInfo(List.of(pages_id)).getFirst();
+        if (infoPage == null) return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages %s not found", pages_id);
         return ResponseEntity.ok(infoPage);
     }
 
@@ -257,6 +258,7 @@ public class PagesService {
 
         for (String pagesId: pagesList) {
             Pages pageEntity = pagesRepository.getStrictPagesByID(pagesId);
+            if (pageEntity.getStatus() == StatusEntity.APPROVED) continue;
             String categoryId = pageEntity.getCategory().getId().toString();
             List<ItemsCategory> itemsId = itemsRepository.getItemsByCategory(categoryId);
             List<PagesItemsExistedRates> existedRates = pagesRepository.getExistedRatesFromItemsByCategoryAndPages(pagesId, categoryId);

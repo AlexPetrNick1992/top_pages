@@ -31,21 +31,21 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "select * from pages p where title = :name", nativeQuery = true)
     Optional<Pages> getPagesByName(String name);
 
-    @Query(value = "select p.id from pages p", nativeQuery = true)
+    @Query(value = "select p.id from pages p where p.status = 2", nativeQuery = true)
     List<String> getAllPagesIds();
 
-    @Query(value = "SELECT p.title, p.id from pages p WHERE p.title LIKE %:word%", nativeQuery = true)
+    @Query(value = "SELECT p.title, p.id from pages p WHERE p.status = 2 and p.title LIKE %:word%", nativeQuery = true)
     List<SearchPagesNames> searchTitlesByWord(String word);
 
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
             " p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p " +
             "left join category c on p.category = c.id " +
-            "where p.title = :title", nativeQuery = true)
+            "where p.title = :title and p.status = 2", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByTitle(String title);
 
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
             " p.status, p.category as category_id, c.\"name\" as name_category, c.description " +
             "from pages p left join category c on p.category = c.id " +
-            "where p.id = :uuid", nativeQuery = true)
+            "where p.id = :uuid and p.status = 2", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByUUID(String uuid);
 }

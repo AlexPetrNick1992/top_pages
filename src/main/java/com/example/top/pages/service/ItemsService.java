@@ -2,7 +2,7 @@ package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
-import com.example.top.pages.models.Rate;
+import com.example.top.pages.models.Pages;
 import com.example.top.pages.models.User;
 import com.example.top.pages.payload.request.ItemsRequest;
 import com.example.top.pages.payload.response.ItemsListResponse;
@@ -23,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
 import java.util.*;
 
 @Data
@@ -59,6 +58,9 @@ public class ItemsService {
         if (categoryFind.isEmpty()) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Category not exists", itemsRequest.getCategoryId());
         }
+
+        Pages pagesItems = categoryFind.get().getPages();
+        if (pagesItems.getStatus() != StatusEntity.APPROVED) return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not approved", itemsRequest.getCategoryId());
 
         StatusEntity newStatus;
         if (roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED")) newStatus = StatusEntity.APPROVED;
