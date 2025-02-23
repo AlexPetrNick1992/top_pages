@@ -1,8 +1,11 @@
 package com.example.top.pages.models;
 
+import com.example.top.pages.models.converter.StatusEntityConverter;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,8 +27,9 @@ public class Pages {
     private String title;
     @Column(name = "description_pages")
     private String descriptionPages;
-    @Column(name = "isapproved")
-    private boolean isApproved;
+    @Convert(converter = StatusEntityConverter.class)
+    @Column(name="status")
+    private StatusEntity status;
     @JsonProperty("created_at")
     @Column(name = "created_at")
     private String createdAt;
@@ -64,22 +68,22 @@ public class Pages {
     @OneToOne @JoinColumn(name = "category")
     private Category category;
 
-    public Pages(Category category, boolean isApproved, String descriptionPages, String title, User createdBy, String createdAt) {
+    public Pages(Category category, StatusEntity status, String descriptionPages, String title, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
-        this.isApproved = isApproved;
+        this.status = status;
         this.descriptionPages = descriptionPages;
         this.title = title;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
 
-    public Pages(Category category, boolean isApproved, String title, User createdBy, String createdAt) {
+    public Pages(Category category, StatusEntity status, String title, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.category = category;
-        this.isApproved = isApproved;
+        this.status = status;
         this.title = title;
         this.createdBy = createdBy;
         this.createdAt = createdAt;

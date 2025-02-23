@@ -1,6 +1,9 @@
 package com.example.top.pages.repository.models.Pages;
 
+import com.example.top.pages.models.converter.StatusEntityConverter;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Convert;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,8 +16,8 @@ public class PagesCategory {
     String title;
     @JsonProperty("description_pages")
     String descriptionPages;
-    @JsonProperty("isapproved")
-    Boolean isApproved;
+    @Convert(converter = StatusEntityConverter.class)
+    Integer status;
     @JsonProperty("category_id")
     String categoryId;
     @JsonProperty("name_category")

@@ -1,8 +1,11 @@
 package com.example.top.pages.models;
 
+import com.example.top.pages.models.converter.StatusEntityConverter;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,8 +28,11 @@ public class Items {
     @Column(name="name")
     private String name;
     private String description;
-    @Column(name = "isapproved")
-    private Boolean isApproved;
+
+    @Convert(converter = StatusEntityConverter.class)
+    @Column(name="status")
+    private StatusEntity status;
+
     @JsonIgnore
     @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     private List<Rate> rate;
@@ -73,33 +79,33 @@ public class Items {
     )
     private Collection<Pages> pages;
 
-    public Items(String name, List<Category> category, List<Pages> pages, Boolean isApproved, User createdBy, String createdAt) {
+    public Items(String name, List<Category> category, List<Pages> pages, StatusEntity status, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.category = category;
         this.description = "No description";
         this.pages = pages;
-        this.isApproved = isApproved;
+        this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
-    public Items(String name, List<Pages> pages, Boolean isApproved, User createdBy, String createdAt) {
+    public Items(String name, List<Pages> pages, StatusEntity status, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.description = "No description";
         this.pages = pages;
-        this.isApproved = isApproved;
+        this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }
-    public Items(String name, Boolean isApproved, User createdBy, String createdAt) {
+    public Items(String name, StatusEntity status, User createdBy, String createdAt) {
         UUID uuid = UUID.randomUUID();
         this.id = UUID.fromString(uuid.toString());
         this.name = name;
         this.description = "No description";
-        this.isApproved = isApproved;
+        this.status = status;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
     }

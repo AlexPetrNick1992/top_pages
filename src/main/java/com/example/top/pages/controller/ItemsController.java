@@ -1,30 +1,39 @@
 package com.example.top.pages.controller;
 
-import com.example.top.pages.models.Items;
 import com.example.top.pages.payload.request.ItemsRequest;
 import com.example.top.pages.service.ItemsService;
 import jakarta.validation.Valid;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @CrossOrigin("*")
+@Data
+@RequiredArgsConstructor
 @RestController
 @RequestMapping(path="api/items")
 public class ItemsController {
-
     private final ItemsService itemsService;
 
-    public ItemsController(ItemsService itemsService) {
-        this.itemsService = itemsService;
+    @GetMapping("/approve")
+    public ResponseEntity<?> approveItem(
+            @RequestParam(required = true, name = "item_id") String itemId
+    ) {
+        return itemsService.approveItem(itemId);
+    }
+    @GetMapping("/disprove")
+    public ResponseEntity<?> disapproveItem(
+            @RequestParam(required = true, name = "item_id") String itemId
+    ) {
+        return itemsService.disapproveItem(itemId);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getItems(
-            @RequestParam(required = true, name = "category_id") String categoryId
+    @DeleteMapping
+    public ResponseEntity<?> deleteItem(
+            @RequestParam(required = true, name = "item_id") String item_id
     ) {
-        return itemsService.getItemsList(categoryId);
+        return itemsService.deleteItem(item_id);
     }
 
     @PostMapping
@@ -32,9 +41,11 @@ public class ItemsController {
         return itemsService.createItems(itemsRequest);
     }
 
-    @GetMapping("/for_test")
-    public ResponseEntity<?> itemsForTest() {
-        return itemsService.getItemsListForTest();
+    @GetMapping
+    public ResponseEntity<?> getItems(
+            @RequestParam(required = true, name = "category_id") String categoryId
+    ) {
+        return itemsService.getItemsList(categoryId);
     }
 
     @GetMapping("/users_rated_items")

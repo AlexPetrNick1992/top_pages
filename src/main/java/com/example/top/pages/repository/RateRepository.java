@@ -10,13 +10,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RateRepository extends JpaRepository<Rate, String> {
-
-    @Query(value = "select * from rate r left join users u on r.user_id = u.id where u.email = :email", nativeQuery = true)
-    List<Rate> getRateFromEmailUser(String email);
-
-    @Query(value = "select * from rate r where user_id = :userUUID", nativeQuery = true)
-    Optional<Rate> getRateByUser(String userUUID);
-
     @Query(value = "select * from rate r where user_id = :userUUID", nativeQuery = true)
     List<Rate> getListRatesByIdUser(String userUUID);
 
@@ -38,6 +31,6 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select * from rate r where r.item = :itemId and r.category_id = :categoryId order by created_at desc", nativeQuery = true)
     List<Rate> getRateByItemWithoutLimit(String itemId, String categoryId);
 
-    @Query(value="select r.created_at, r.updated_at, r.id, r.\"comment\", r.user_id, r.ispositive, r.isapproved, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)
+    @Query(value="select r.created_at, r.updated_at, r.id, r.\"comment\", r.user_id, r.ispositive, r.status, r.item, i.\"name\", r.category_id from rate r left join item i on r.item = i.id where r.user_id = :userUUID and i.id = :itemUUID and r.category_id = :categoryId", nativeQuery = true)
     Optional<Rate> getItemAndRateByUserAndItemAndCategory(String userUUID, String itemUUID, String categoryId);
 }

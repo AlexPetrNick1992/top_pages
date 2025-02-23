@@ -22,7 +22,7 @@ public class ItemsListResponse {
                     m.put("id", String.valueOf(items.getItemId()));
                     m.put("name", items.getItemName());
                     m.put("description", items.getDescription());
-                    m.put("is_approved", items.getIsapproved());
+                    m.put("status", items.getStatus());
                     return m;
                 }
         ).toList();

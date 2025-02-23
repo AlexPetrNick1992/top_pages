@@ -2,6 +2,7 @@ package com.example.top.pages.service;
 
 import com.example.top.pages.models.Category;
 import com.example.top.pages.models.Items;
+import com.example.top.pages.models.Rate;
 import com.example.top.pages.models.User;
 import com.example.top.pages.payload.request.ItemsRequest;
 import com.example.top.pages.payload.response.ItemsListResponse;
@@ -11,6 +12,7 @@ import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.example.top.pages.utils.DateWorker;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.swing.*;
 import java.util.*;
@@ -35,16 +38,13 @@ public class ItemsService {
     private final DateWorker dateWorker;
     private final ActionHistoryService actionHistoryService;
 
-    public ResponseEntity<?> getItemsListForTest() {
-        return ResponseEntity.ok(itemsRepository.findAll());
-    }
-
     // TODO: Оптимизировать
     public ResponseEntity<?> getItemsList(String categoryId) {
         List<ItemsCategory> itemsList = itemsRepository.getItemsByCategory(categoryId);
         return ResponseEntity.ok(new ItemsListResponse(itemsList));
     }
 
+    @Transactional
     public ResponseEntity<?> createItems(ItemsRequest itemsRequest) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
@@ -60,11 +60,15 @@ public class ItemsService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Category not exists", itemsRequest.getCategoryId());
         }
 
+        StatusEntity newStatus;
+        if (roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED")) newStatus = StatusEntity.APPROVED;
+        else newStatus = StatusEntity.WAIT_APPROVE;
+
         Items items = new Items(
                 itemsRequest.getItemsName(),
                 List.of(categoryFind.get()),
                 List.of(categoryFind.get().getPages()),
-                roles.contains("ROLE_ADMIN"),
+                newStatus,
                 user, dateWorker.getCurrentTimeISO()
         );
         if (itemsRequest.getDescription() != null) {items.setDescription(itemsRequest.getDescription());}
@@ -85,5 +89,55 @@ public class ItemsService {
 
     public ResponseEntity<?> searchItem(String text) {
         return ResponseEntity.ok(itemsRepository.searchItems(text));
+    }
+
+    @Transactional
+    public ResponseEntity<?> approveItem(String itemId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
+        /* Проверка категории */
+        Optional<Items> itemsCheck = itemsRepository.findByStringUUID(itemId);
+        if (itemsCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Item not exists", itemId);
+        }
+        Items items = itemsCheck.get();
+        if (items.getStatus() == StatusEntity.APPROVED) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This item already is approved", null);
+        }
+        items.setStatus(StatusEntity.APPROVED);
+        itemsRepository.save(items);
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.APPROVED_ITEM,
+                String.format("%s(%s)", user.getName(), user.getId().toString()),
+                itemId,
+                items.getCreatedBy()
+        );
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Items successfully approved", items.getId().toString());
+    }
+
+    @Transactional
+    public ResponseEntity<?> disapproveItem(String itemId) {
+        return ResponseEntity.ok("SA");
+    }
+
+    @Transactional
+    public ResponseEntity<?> deleteItem(String itemId) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
+        Optional<Items> itemsCheck = itemsRepository.findByStringUUID(itemId);
+        if (itemsCheck.isEmpty()) {
+            return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Item not exists", itemId);
+        }
+        Items items = itemsCheck.get();
+        itemsRepository.delete(items);
+        actionHistoryService.createHistoryByTypeWithAdmin(
+                ActionHistoryService.TypeHistoryAdmin.DELETED_ITEM,
+                String.format("%s(%s)", user.getName(), user.getId().toString()),
+                itemId,
+                items.getCreatedBy()
+        );
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Item successfully delete", itemId);
     }
 }

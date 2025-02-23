@@ -43,7 +43,6 @@ public class Category {
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "category")
     private Pages pages;
 
-
     @JsonIgnore
     @ManyToMany(cascade =
             {

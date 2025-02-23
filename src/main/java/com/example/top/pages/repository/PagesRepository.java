@@ -15,14 +15,8 @@ import java.util.UUID;
 
 public interface PagesRepository extends JpaRepository<Pages, UUID> {
 
-    @Query(value = "select * from pages c where id = :uuid", nativeQuery = true)
-    Optional<Pages> findByUUID(UUID uuid);
-
     @Query(value = "select * from pages p where p.id = :id", nativeQuery = true)
-    Pages getStrickPagesByID(String id);
-
-    @Query(value = "select pi2.items_id from pages_items pi2 where pi2.pages_id = :pagesId", nativeQuery = true)
-    List<String> getItemsByPages(String pagesId);
+    Pages getStrictPagesByID(String id);
 
     @Query(value = "select pi2.items_id as item_id, count(r.id) as count " +
             "from pages_items pi2 " +
@@ -31,10 +25,9 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
             "group by pi2.items_id\n", nativeQuery = true)
     List<PagesItemsExistedRates> getExistedRatesFromItemsByCategoryAndPages(String pagesId, String categoryId);
 
-    @Query(value = "select p.id, p.title, p.description_pages, p.category, p.isapproved from pages_items pi2 left join pages p on p.id = pi2.pages_id", nativeQuery = true)
-    List<Pages> getListPagesWithItems();
     @Query(value = "select * from pages c where id = :uuid", nativeQuery = true)
     Optional<Pages> findByUUIDString(String uuid);
+
     @Query(value = "select * from pages p where title = :name", nativeQuery = true)
     Optional<Pages> getPagesByName(String name);
 
@@ -44,28 +37,14 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "SELECT p.title, p.id from pages p WHERE p.title LIKE %:word%", nativeQuery = true)
     List<SearchPagesNames> searchTitlesByWord(String word);
 
-    @Query(value = "select pi2.pages_id, pi2.items_id from pages_items pi2 where pi2.pages_id in :listPagesId", nativeQuery = true)
-    List<PagesItems> getItemsPages(List<String> listPagesId);
-
-    @Query(value = "select r.* from pages p left join rate r on r.category_id = p.category where p.id = :pagesUUID", nativeQuery = true)
-    List<Rate> getListRatesByPages(String pagesUUID);
-
-//    @Query(value = "select p.id as pages_id, p.title, p.description_pages , p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p left join category c on p.category = c.id", nativeQuery = true)
-    @Query(value = "select p.id as pages_id, p.title, p.description_pages , p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description " +
-            "from pages p " +
-            "join category c on p.category = c.id " +
-            "join pages_items pi2 on pi2.pages_id = p.id " +
-            "group by p.id, c.\"name\", c.description " +
-            "order by count(pi2.items_id) desc", nativeQuery = true)
-    List<PagesCategory> getAllPagesWithCategory();
-
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
             " p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p " +
             "left join category c on p.category = c.id " +
             "where p.title = :title", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByTitle(String title);
+
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
-            " p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description " +
+            " p.status, p.category as category_id, c.\"name\" as name_category, c.description " +
             "from pages p left join category c on p.category = c.id " +
             "where p.id = :uuid", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByUUID(String uuid);

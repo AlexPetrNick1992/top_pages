@@ -12,6 +12,7 @@ import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
 import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.example.top.pages.utils.DateWorker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -39,6 +41,7 @@ public class PagesService {
         return ResponseEntity.ok(getPagesInfo(pagesRepository.getAllPagesIds()));
     }
 
+    @Transactional
     public ResponseEntity<?> joinItem(String itemId, String pagesId) {
         Optional<Items> itemCheck = itemsRepository.findByStringUUID(itemId);
         if (itemCheck.isEmpty()) {
@@ -67,6 +70,7 @@ public class PagesService {
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Pages successfully add item", String.valueOf(item.getId()));
     }
 
+    @Transactional
     public ResponseEntity<?> deletePages(String pagesId) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
@@ -76,7 +80,7 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pagesId);
         } else {
             Pages page = pagesCheck.get();
-            Category category = categoryRepository.findByUUIDStringStrick(String.valueOf(page.getCategory().getId()));
+            Category category = categoryRepository.findByUUIDStringStrict(String.valueOf(page.getCategory().getId()));
             categoryRepository.delete(category);
             actionHistoryService.createHistoryByTypeWithAdmin(
                     ActionHistoryService.TypeHistoryAdmin.DELETED_CATEGORY,
@@ -88,6 +92,7 @@ public class PagesService {
         }
     }
 
+    @Transactional
     public ResponseEntity<?> approvePages(String pageId) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
@@ -97,10 +102,10 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
         } else {
             Pages page = pagesCheck.get();
-            if (page.isApproved()) {
+            if (page.getStatus() == StatusEntity.APPROVED) {
                 return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already approved", pageId);
             }
-            page.setApproved(true);
+            page.setStatus(StatusEntity.APPROVED);
             pagesRepository.save(page);
             actionHistoryService.createHistoryByTypeWithAdmin(
                     ActionHistoryService.TypeHistoryAdmin.APPROVED_PAGES, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
@@ -112,6 +117,7 @@ public class PagesService {
         }
     }
 
+    @Transactional
     public ResponseEntity<?> disprovePages(String pageId) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
@@ -121,10 +127,10 @@ public class PagesService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages not exists", pageId);
         } else {
             Pages page = pagesCheck.get();
-            if (!page.isApproved()) {
+            if (page.getStatus() == StatusEntity.CANCELED) {
                 return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Pages already disprove", pageId);
             }
-            page.setApproved(false);
+            page.setStatus(StatusEntity.CANCELED);
             pagesRepository.save(page);
             actionHistoryService.createHistoryByTypeWithAdmin(
                     ActionHistoryService.TypeHistoryAdmin.DISAPPROVED_PAGES, String.format("%s(%s)", user.getName(), user.getId().toString()), page.getTitle(), page.getCreatedBy()
@@ -156,6 +162,7 @@ public class PagesService {
         return ResponseEntity.ok(infoPage);
     }
 
+    @Transactional
     public ResponseEntity<?> createPages(PagesRequest pagesRequest) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
@@ -172,9 +179,13 @@ public class PagesService {
         Category category = new Category(pagesRequest.getCategory(), user, dateWorker.getCurrentTimeISO());
         categoryRepository.save(category);
 
+        StatusEntity newStatus;
+        if (roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED")) newStatus = StatusEntity.APPROVED;
+        else newStatus = StatusEntity.WAIT_APPROVE;
+
         Pages page = new Pages(
                 category,
-                roles.contains("ROLE_ADMIN"),
+                newStatus,
                 pagesRequest.getName(),
                 user,
                 dateWorker.getCurrentTimeISO()
@@ -203,7 +214,7 @@ public class PagesService {
                 } else {
                     Items newItems = new Items(
                             itemRequest.getItemsName(),
-                            roles.contains("ROLE_ADMIN"),
+                            newStatus,
                             user,
                             dateWorker.getCurrentTimeISO()
                     );
@@ -245,7 +256,7 @@ public class PagesService {
         List<Map<String, Object>> readyList = new ArrayList<>();
 
         for (String pagesId: pagesList) {
-            Pages pageEntity = pagesRepository.getStrickPagesByID(pagesId);
+            Pages pageEntity = pagesRepository.getStrictPagesByID(pagesId);
             String categoryId = pageEntity.getCategory().getId().toString();
             List<ItemsCategory> itemsId = itemsRepository.getItemsByCategory(categoryId);
             List<PagesItemsExistedRates> existedRates = pagesRepository.getExistedRatesFromItemsByCategoryAndPages(pagesId, categoryId);

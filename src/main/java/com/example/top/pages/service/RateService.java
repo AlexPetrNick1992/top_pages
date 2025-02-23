@@ -13,6 +13,7 @@ import com.example.top.pages.repository.CategoryRepository;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.RateRepository;
 import com.example.top.pages.repository.UserRepository;
+import com.example.top.pages.service.enumerate.StatusEntity;
 import com.example.top.pages.utils.DateWorker;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -44,6 +46,7 @@ public class RateService {
         return ResponseEntity.ok(new UserRatesResponse(rateRepository.getListRatesByIdUser(String.valueOf(user.getId()))));
     }
 
+    @Transactional
     public ResponseEntity<?> approve(String rate_id, String category_id) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
@@ -58,10 +61,10 @@ public class RateService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate %s not exists", rate_id);
         }
         Rate rate = rateEntity.get();
-        if (rate.isApproved()) {
+        if (rate.getStatus() == StatusEntity.APPROVED) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This rate already is approved", null);
         }
-        rate.setApproved(true);
+        rate.setStatus(StatusEntity.APPROVED);
         rateRepository.save(rate);
         actionHistoryService.createHistoryByTypeWithAdmin(
                 ActionHistoryService.TypeHistoryAdmin.APPROVED_RATE,
@@ -72,6 +75,7 @@ public class RateService {
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully approved", rate_id);
     }
 
+    @Transactional
     public ResponseEntity<?> disprove(String rate_id, String category_id) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
@@ -86,10 +90,10 @@ public class RateService {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "Rate not exists", rate_id);
         }
         Rate rate = rateEntity.get();
-        if (!rate.isApproved()) {
+        if (rate.getStatus() == StatusEntity.CANCELED) {
             return responseEntityAppResponse.getAppResponse(HttpStatus.BAD_REQUEST, "This rate already is disproved", null);
         }
-        rate.setApproved(false);
+        rate.setStatus(StatusEntity.CANCELED);
         rateRepository.save(rate);
         actionHistoryService.createHistoryByTypeWithAdmin(
                 ActionHistoryService.TypeHistoryAdmin.DISAPPROVED_RATE,
@@ -100,6 +104,7 @@ public class RateService {
         return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Rate successfully disprove", rate_id);
     }
 
+    @Transactional
     public ResponseEntity<?> deleteRate(String rate_id, String category_id) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
@@ -155,6 +160,7 @@ public class RateService {
         }
     }
 
+    @Transactional
     public ResponseEntity<?> rateToItem(RateAction rateAction) {
         Items tempItem;
         Optional<Items> itemsCheck = itemsRepository.findByStringUUID(rateAction.getItemId());
@@ -190,19 +196,21 @@ public class RateService {
 
             Category category = categoryCheck.get();
             /* Админ isApproved = true */
-            Boolean isApproved = roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED");
+            StatusEntity newStatus;
+            if (roles.contains("ROLE_ADMIN") || roles.contains("ROLE_APPROVED")) newStatus = StatusEntity.APPROVED;
+            else newStatus = StatusEntity.WAIT_APPROVE;
 
             Rate rate = new Rate(
                     tempItem,
                     userItem,
                     rateAction.getComment(),
-                    isApproved,
                     rateAction.getIsPositive(),
+                    newStatus,
                     category,
                     dateWorker.getCurrentTimeISO()
             );
             rateRepository.save(rate);
-            actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.VOTED, userItem, rate.getId().toString());
+            actionHistoryService.createHistoryByType(ActionHistoryService.TypeHistory.VOTED, userItem, rate.getItem().getName());
             return responseEntityAppResponse.getAppResponse(HttpStatus.OK, "Success rate", String.valueOf(rate.getId()));
         }
     }
