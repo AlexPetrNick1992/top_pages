@@ -16,10 +16,10 @@ public interface RateRepository extends JpaRepository<Rate, String> {
     @Query(value = "select * from rate r where user_id = :userUUID and category_id = :categoryUUID", nativeQuery = true)
     Optional<Rate> getRateByIDAndCategory(String userUUID, String categoryUUID);
 
-    @Query(value = "select u.id, u.\"name\", u.email, u.birthday, count(r.id) " +
-            "from rate r join users u on r.user_id = u.id " +
-            "where u.id = :userUUID " +
-            "group by u.id", nativeQuery = true)
+    @Query(value = "select u.id, u.\"name\", u.email, u.birthday, " +
+            "(select count(*) from rate r where r.user_id = u.id and r.status = 2) " +
+            "from users u " +
+            "where u.id = :userUUID", nativeQuery = true)
     Optional<UserInfoResponse> getUserInfoWithARates(String userUUID);
 
     @Query(value = "select * from rate r where id = :rateUUID", nativeQuery = true)

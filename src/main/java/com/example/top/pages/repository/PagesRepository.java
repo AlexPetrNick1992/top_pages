@@ -21,7 +21,7 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "select pi2.items_id as item_id, count(r.id) as count " +
             "from pages_items pi2 " +
             "left join rate r on pi2.items_id = r.item " +
-            "where pi2.pages_id = :pagesId and r.category_id = :categoryId " +
+            "where pi2.pages_id = :pagesId and r.category_id = :categoryId and r.status = 2 " +
             "group by pi2.items_id\n", nativeQuery = true)
     List<PagesItemsExistedRates> getExistedRatesFromItemsByCategoryAndPages(String pagesId, String categoryId);
 

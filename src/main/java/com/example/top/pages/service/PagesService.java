@@ -258,9 +258,12 @@ public class PagesService {
 
         for (String pagesId: pagesList) {
             Pages pageEntity = pagesRepository.getStrictPagesByID(pagesId);
-            if (pageEntity.getStatus() == StatusEntity.APPROVED) continue;
+            System.out.println("pageEntity.getStatus()");
+            System.out.println(pageEntity.getStatus());
+            if (pageEntity.getStatus() != StatusEntity.APPROVED) continue;
             String categoryId = pageEntity.getCategory().getId().toString();
             List<ItemsCategory> itemsId = itemsRepository.getItemsByCategory(categoryId);
+            System.out.println(itemsId);
             List<PagesItemsExistedRates> existedRates = pagesRepository.getExistedRatesFromItemsByCategoryAndPages(pagesId, categoryId);
             Map<String, Object> response = new HashMap<>();
             response.put("id", pagesId);
