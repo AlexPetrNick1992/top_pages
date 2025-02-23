@@ -30,6 +30,12 @@ public class User {
     @JsonProperty("birthday")
     @Column(name = "birthday")
     private LocalDate dateOfBirth;
+    @JsonProperty(value = "created_at")
+    @Column(name="created_at")
+    private String createdAt;
+    @JsonProperty(value = "updated_at")
+    @Column(name="updated_at")
+    private String updatedAt;
 
     public User(String email, String password, String username, Collection<Roles> roles) {
         UUID uuid = UUID.randomUUID();

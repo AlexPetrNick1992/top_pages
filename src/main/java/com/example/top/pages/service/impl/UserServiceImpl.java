@@ -101,7 +101,8 @@ public class UserServiceImpl implements UserDetailsService {
             return ResponseEntity.ok(userInfo.get());
         } else if (!userItem.getEmail().isEmpty()) {
             return ResponseEntity.ok(new UserInfoResponse(
-                userItem.getId().toString(), userItem.getName(), userItem.getEmail(), userItem.getDateOfBirth().toString(), (long) 0
+                userItem.getId().toString(), userItem.getName(), userItem.getEmail(),
+                    userItem.getDateOfBirth().toString(), userItem.getCreatedAt(), (long) 0
             ));
         }
         return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь не найден"), HttpStatus.BAD_REQUEST);
