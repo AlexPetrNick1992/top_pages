@@ -1,7 +1,9 @@
 package com.example.top.pages.service;
 
-import com.example.top.pages.controller.UserController;
+import com.example.top.pages.models.Items;
 import com.example.top.pages.models.User;
+import com.example.top.pages.payload.response.PagesRequestsUser;
+import com.example.top.pages.payload.response.RateRequest;
 import com.example.top.pages.repository.ItemsRepository;
 import com.example.top.pages.repository.PagesRepository;
 import com.example.top.pages.repository.RateRepository;
@@ -13,7 +15,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @RequiredArgsConstructor
@@ -29,6 +33,17 @@ public class RequestService {
         List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
 
-        return ResponseEntity.ok("OK");
+        String userId = userItem.getId().toString();
+        List<RateRequest> rateList = rateRepository.getRequestRate(userId);
+        List<Items> itemsList = itemsRepository.getRequestItemRate(userId);
+        List<PagesRequestsUser> pagesList = pagesRepository.getRequestPagesRate(userId);
+
+        Map<String, Object> responseMap = new HashMap<>(){{
+            put("pages", pagesList);
+            put("items", itemsList);
+            put("rates", rateList);
+        }};
+
+        return ResponseEntity.ok(responseMap);
     }
 }

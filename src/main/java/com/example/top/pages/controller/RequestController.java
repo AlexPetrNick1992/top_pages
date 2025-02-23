@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @RestController
 @RequestMapping("api/v1/requests")
 public class RequestController {

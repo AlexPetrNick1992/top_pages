@@ -1,10 +1,9 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Pages;
-import com.example.top.pages.models.Rate;
+import com.example.top.pages.payload.response.PagesRequestsUser;
 import com.example.top.pages.payload.response.SearchPagesNames;
 import com.example.top.pages.repository.models.Pages.PagesCategory;
-import com.example.top.pages.repository.models.Pages.PagesItems;
 import com.example.top.pages.repository.models.Pages.PagesItemsExistedRates;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,10 +17,13 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "select * from pages p where p.id = :id", nativeQuery = true)
     Pages getStrictPagesByID(String id);
 
+    @Query(value = "select p.id, p.title, p.description_pages as description, p.status, p.created_at from pages p where p.created_by = :userId and p.status = 1", nativeQuery = true)
+    List<PagesRequestsUser> getRequestPagesRate(String userId);
+
     @Query(value = "select pi2.items_id as item_id, count(r.id) as count " +
             "from pages_items pi2 " +
             "left join rate r on pi2.items_id = r.item " +
-            "where pi2.pages_id = :pagesId and r.category_id = :categoryId and r.status = 2 " +
+            "where pi2.pages_id = :pagesId and r.category_id = :categoryId and r.status not in (1,3) " +
             "group by pi2.items_id\n", nativeQuery = true)
     List<PagesItemsExistedRates> getExistedRatesFromItemsByCategoryAndPages(String pagesId, String categoryId);
 
@@ -31,21 +33,21 @@ public interface PagesRepository extends JpaRepository<Pages, UUID> {
     @Query(value = "select * from pages p where title = :name", nativeQuery = true)
     Optional<Pages> getPagesByName(String name);
 
-    @Query(value = "select p.id from pages p where p.status = 2", nativeQuery = true)
+    @Query(value = "select p.id from pages p where p.status not in (1,3)", nativeQuery = true)
     List<String> getAllPagesIds();
 
-    @Query(value = "SELECT p.title, p.id from pages p WHERE p.status = 2 and p.title LIKE %:word%", nativeQuery = true)
+    @Query(value = "SELECT p.title, p.id from pages p WHERE p.status not in (1,3) and p.title LIKE %:word%", nativeQuery = true)
     List<SearchPagesNames> searchTitlesByWord(String word);
 
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
             " p.isapproved as isapproved, p.category as category_id, c.\"name\" as name_category, c.description from pages p " +
             "left join category c on p.category = c.id " +
-            "where p.title = :title and p.status = 2", nativeQuery = true)
+            "where p.title = :title and p.status not in (1,3)", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByTitle(String title);
 
     @Query(value = "select p.id as pages_id, p.title, p.description_pages," +
             " p.status, p.category as category_id, c.\"name\" as name_category, c.description " +
             "from pages p left join category c on p.category = c.id " +
-            "where p.id = :uuid and p.status = 2", nativeQuery = true)
+            "where p.id = :uuid and p.status not in (1,3)", nativeQuery = true)
     Optional<PagesCategory> getAllPagesWithCategoryByUUID(String uuid);
 }
