@@ -3,9 +3,14 @@ package com.example.top.pages.service;
 import com.example.top.pages.models.ActionHistory;
 import com.example.top.pages.models.User;
 import com.example.top.pages.repository.ActionHistoryRepository;
+import com.example.top.pages.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -13,6 +18,13 @@ import org.springframework.stereotype.Service;
 public class ActionHistoryService {
 
     private final ActionHistoryRepository actionHistoryRepository;
+    private final UserRepository userRepository;
+
+    public ResponseEntity<?> getUserHistory() {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        return ResponseEntity.ok(actionHistoryRepository.findHistoryByUserId(user.getId().toString()));
+    }
 
     public enum TypeHistory {
         USER_UPDATE,

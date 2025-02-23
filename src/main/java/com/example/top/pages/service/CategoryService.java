@@ -54,7 +54,6 @@ public class CategoryService {
 
     public ResponseEntity<?> deleteCategory(String categoryId) {
         Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
-        List<String> roles = contextUser.getAuthorities().stream().map(Object::toString).toList();
         User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
 
         Optional<Category> categoryCheck = categoryRepository.findByUUIDString(categoryId);
