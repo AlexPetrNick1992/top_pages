@@ -53,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "api/v1/requests").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/pages/join_item").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/pages").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "api/v1/user").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "api/v1/user/change_password").authenticated()
                         .requestMatchers("/api/v1/pages/approve").hasRole("ADMIN")
                         .requestMatchers("/api/v1/pages/disprove").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/pages").hasRole("ADMIN")

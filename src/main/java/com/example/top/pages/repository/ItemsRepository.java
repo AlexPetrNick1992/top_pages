@@ -1,6 +1,7 @@
 package com.example.top.pages.repository;
 
 import com.example.top.pages.models.Items;
+import com.example.top.pages.payload.response.ItemsRequests;
 import com.example.top.pages.payload.response.ItemsSearch;
 import com.example.top.pages.repository.models.Items.ItemsCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,8 +15,8 @@ public interface ItemsRepository extends JpaRepository<Items, String> {
     @Query(value = "select * from item c where id = :uuid", nativeQuery = true)
     Optional<Items> findByStringUUID(String uuid);
 
-    @Query(value = "select * from item i where i.created_by = :userId and i.status = 1", nativeQuery = true)
-    List<Items> getRequestItemRate(String userId);
+    @Query(value = "select i.id, i.\"name\", i.description, i.status, i.created_at from item i where i.created_by = :userId and i.status = 1", nativeQuery = true)
+    List<ItemsRequests> getRequestItemRate(String userId);
 
     @Query(value = "select * from item i where name = :name", nativeQuery = true)
     Optional<Items> findByName(String name);

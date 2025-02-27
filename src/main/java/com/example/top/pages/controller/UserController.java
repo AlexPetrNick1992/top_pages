@@ -1,16 +1,17 @@
 package com.example.top.pages.controller;
 
 import com.example.top.pages.models.User;
+import com.example.top.pages.payload.request.ChangePassword;
+import com.example.top.pages.payload.request.PagesRequest;
+import com.example.top.pages.payload.request.UserUpdateRequest;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.service.impl.UserServiceImpl;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,6 +30,16 @@ public class UserController{
     @GetMapping("api/v1/user/info")
     public ResponseEntity<?> getInfoUser() {
         return userService.getUserInfo();
+    }
+
+    @PutMapping("api/v1/user")
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserUpdateRequest userUpdateInfo) {
+        return userService.updateUser(userUpdateInfo);
+    }
+
+    @PutMapping("api/v1/user/change_password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword) {
+        return userService.changePassword(changePassword);
     }
 
 }

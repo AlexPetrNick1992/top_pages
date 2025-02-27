@@ -1,5 +1,7 @@
 package com.example.top.pages.service.impl;
 
+import com.example.top.pages.payload.request.ChangePassword;
+import com.example.top.pages.payload.request.UserUpdateRequest;
 import com.example.top.pages.payload.response.*;
 import com.example.top.pages.payload.request.JwtTokenRequest;
 import com.example.top.pages.payload.request.RegistrationUser;
@@ -8,7 +10,9 @@ import com.example.top.pages.repository.RolesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.models.User;
 import com.example.top.pages.service.ActionHistoryService;
+import com.example.top.pages.utils.DateWorker;
 import com.example.top.pages.utils.JwtTokenUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,6 +40,7 @@ public class UserServiceImpl implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final RateRepository rateRepository;
     private final ActionHistoryService actionHistoryService;
+    private final DateWorker dataWorker;
 
     public Optional<User> findByEmail(String email) {return userRepository.findUserByEmail(email);}
     public void createNewUser(User user) {userRepository.save(user);}
@@ -102,7 +108,7 @@ public class UserServiceImpl implements UserDetailsService {
         } else if (!userItem.getEmail().isEmpty()) {
             return ResponseEntity.ok(new UserInfoResponse(
                 userItem.getId().toString(), userItem.getName(), userItem.getEmail(),
-                    userItem.getDateOfBirth().toString(), userItem.getCreatedAt(), (long) 0
+                    userItem.getDateOfBirth(), userItem.getCreatedAt(), (long) 0
             ));
         }
         return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пользователь не найден"), HttpStatus.BAD_REQUEST);
@@ -112,5 +118,51 @@ public class UserServiceImpl implements UserDetailsService {
         Optional<User> checkUser = userRepository.findUserByEmail(email);
         if (checkUser.isPresent()) return ResponseEntity.ok(new CheckEmailResponse(true));
         else return ResponseEntity.ok(new CheckEmailResponse(false));
+    }
+
+    public ResponseEntity<?> updateUser(@Valid UserUpdateRequest userUpdateInfo) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        String newEmail = userUpdateInfo.getEmail();
+        /* Check Data */
+        if (Objects.equals(userUpdateInfo.getEmail(), userItem.getEmail())) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "У пользователя уже такой же email"), HttpStatus.BAD_REQUEST);
+        }
+        if (Objects.equals(userUpdateInfo.getUsername(), userItem.getName())) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "У пользователя уже такой же username"), HttpStatus.BAD_REQUEST);
+        }
+        if (!dataWorker.isStringValidData(userUpdateInfo.getBirthday())) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Неправильная дата"), HttpStatus.BAD_REQUEST);
+        }
+        if(userUpdateInfo.getUsername().isBlank()) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пустой username"), HttpStatus.BAD_REQUEST);
+        }
+        if(newEmail.isBlank()) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пустой email"), HttpStatus.BAD_REQUEST);
+        }
+        Optional<User> userCheck = userRepository.findUserByEmail(newEmail);
+        if (userCheck.isPresent()) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Email уже занят"), HttpStatus.BAD_REQUEST);
+        }
+        userItem.setName(userUpdateInfo.getUsername());
+        userItem.setEmail(userUpdateInfo.getEmail());
+        userItem.setDateOfBirth(userUpdateInfo.getBirthday());
+        userRepository.save(userItem);
+        return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
+                String.format("Пользователь %s обновлен", userItem.getEmail())
+        ));
+    }
+
+    public ResponseEntity<?> changePassword(@Valid ChangePassword changePassword) {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        if (!Objects.equals(changePassword.getNewPassword(), changePassword.getConfirmPassword())) {
+            return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пароли не совпадают"), HttpStatus.BAD_REQUEST);
+        }
+        userItem.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
+        userRepository.save(userItem);
+        return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
+                String.format("Пароль %s обновлен", userItem.getEmail())
+        ));
     }
 }

@@ -29,7 +29,7 @@ public class User {
     private String password;
     @JsonProperty("birthday")
     @Column(name = "birthday")
-    private LocalDate dateOfBirth;
+    private String dateOfBirth;
     @JsonProperty(value = "created_at")
     @Column(name="created_at")
     private String createdAt;

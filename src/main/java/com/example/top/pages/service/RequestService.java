@@ -2,6 +2,7 @@ package com.example.top.pages.service;
 
 import com.example.top.pages.models.Items;
 import com.example.top.pages.models.User;
+import com.example.top.pages.payload.response.ItemsRequests;
 import com.example.top.pages.payload.response.PagesRequestsUser;
 import com.example.top.pages.payload.response.RateRequest;
 import com.example.top.pages.repository.ItemsRepository;
@@ -35,7 +36,7 @@ public class RequestService {
 
         String userId = userItem.getId().toString();
         List<RateRequest> rateList = rateRepository.getRequestRate(userId);
-        List<Items> itemsList = itemsRepository.getRequestItemRate(userId);
+        List<ItemsRequests> itemsList = itemsRepository.getRequestItemRate(userId);
         List<PagesRequestsUser> pagesList = pagesRepository.getRequestPagesRate(userId);
 
         Map<String, Object> responseMap = new HashMap<>(){{
