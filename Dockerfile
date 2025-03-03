@@ -1,12 +1,15 @@
-FROM    maven
+FROM openjdk:21-jdk
 
-RUN     mkdir /docker
+# RUN addgroup spring-boot-group && adduser --ingroup spring-boot-group spring-boot
+# USER spring-boot:spring-boot-group
 
-WORKDIR /docker
+VOLUME /tmp
+ARG JAR_FILE=pages-0.1.jar
+WORKDIR /application
 
-COPY    pom.xml .
-RUN     mvn dependency:resolve
 
-COPY    src .
+COPY target/${JAR_FILE} application.jar
+COPY target/dependency lib
 
-RUN     mvn clean install
+EXPOSE 8080
+ENTRYPOINT exec java ${JAVA_OPTS} -cp lib/*:application.jar com.example.top.pages.PagesApplication ${0} ${@}

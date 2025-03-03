@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Entity
@@ -27,6 +26,9 @@ public class User {
     @JsonIgnore
     @Column(name = "password")
     private String password;
+    @JsonIgnore
+    @Column(name = "avatar_image")
+    private String avatarImage;
     @JsonProperty("birthday")
     @Column(name = "birthday")
     private String dateOfBirth;

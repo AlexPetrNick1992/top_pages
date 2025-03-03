@@ -1,19 +1,16 @@
 package com.example.top.pages.controller;
 
-import com.example.top.pages.models.User;
 import com.example.top.pages.payload.request.ChangePassword;
-import com.example.top.pages.payload.request.PagesRequest;
 import com.example.top.pages.payload.request.UserUpdateRequest;
-import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.service.impl.UserServiceImpl;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
 
 
 @CrossOrigin("*")
@@ -40,6 +37,17 @@ public class UserController{
     @PutMapping("api/v1/user/change_password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePassword changePassword) {
         return userService.changePassword(changePassword);
+    }
+
+    @PostMapping("api/v1/user/avatar")
+    public ResponseEntity<?> loadAvatar(@RequestParam("file") MultipartFile file, @RequestParam("name_file") String nameFile) {
+        return userService.loadAvatar(file, nameFile);
+    }
+
+//    @GetMapping("api/v1/user/avatar")
+    @RequestMapping(path = "/api/v1/user/avatar", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getAvatar() throws IOException {
+        return userService.getAvatar();
     }
 
 }

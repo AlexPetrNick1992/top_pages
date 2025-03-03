@@ -1,20 +1,22 @@
 package com.example.top.pages.service.impl;
 
-import com.example.top.pages.payload.request.ChangePassword;
-import com.example.top.pages.payload.request.UserUpdateRequest;
+import com.amazonaws.util.IOUtils;
+import com.example.top.pages.payload.request.*;
 import com.example.top.pages.payload.response.*;
-import com.example.top.pages.payload.request.JwtTokenRequest;
-import com.example.top.pages.payload.request.RegistrationUser;
 import com.example.top.pages.repository.RateRepository;
 import com.example.top.pages.repository.RolesRepository;
 import com.example.top.pages.repository.UserRepository;
 import com.example.top.pages.models.User;
 import com.example.top.pages.service.ActionHistoryService;
+import com.example.top.pages.service.SettingsService;
 import com.example.top.pages.utils.DateWorker;
 import com.example.top.pages.utils.JwtTokenUtils;
+import com.example.top.pages.utils.S3Storage;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,7 +27,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,9 +45,17 @@ public class UserServiceImpl implements UserDetailsService {
     private final RateRepository rateRepository;
     private final ActionHistoryService actionHistoryService;
     private final DateWorker dataWorker;
+    private final ResponseEntityAppResponse responseEntityAppResponse;
+    private final SettingsService settingsService;
+    private final S3Storage storage;
 
-    public Optional<User> findByEmail(String email) {return userRepository.findUserByEmail(email);}
-    public void createNewUser(User user) {userRepository.save(user);}
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findUserByEmail(email);
+    }
+
+    public void createNewUser(User user) {
+        userRepository.save(user);
+    }
 
     @Override
     @Transactional
@@ -92,7 +104,7 @@ public class UserServiceImpl implements UserDetailsService {
                 ActionHistoryService.TypeHistory.USER_REGISTER,
                 user,
                 user.getId().toString()
-                );
+        );
         return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
                 String.format("Пользователь %s зарегистрирован", registrationUser.getEmail())
         ));
@@ -107,7 +119,7 @@ public class UserServiceImpl implements UserDetailsService {
             return ResponseEntity.ok(userInfo.get());
         } else if (!userItem.getEmail().isEmpty()) {
             return ResponseEntity.ok(new UserInfoResponse(
-                userItem.getId().toString(), userItem.getName(), userItem.getEmail(),
+                    userItem.getId().toString(), userItem.getName(), userItem.getEmail(),
                     userItem.getDateOfBirth(), userItem.getCreatedAt(), (long) 0
             ));
         }
@@ -134,10 +146,10 @@ public class UserServiceImpl implements UserDetailsService {
         if (!dataWorker.isStringValidData(userUpdateInfo.getBirthday())) {
             return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Неправильная дата"), HttpStatus.BAD_REQUEST);
         }
-        if(userUpdateInfo.getUsername().isBlank()) {
+        if (userUpdateInfo.getUsername().isBlank()) {
             return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пустой username"), HttpStatus.BAD_REQUEST);
         }
-        if(newEmail.isBlank()) {
+        if (newEmail.isBlank()) {
             return new ResponseEntity<>(new AppResponse(HttpStatus.BAD_REQUEST.value(), "Пустой email"), HttpStatus.BAD_REQUEST);
         }
         Optional<User> userCheck = userRepository.findUserByEmail(newEmail);
@@ -148,9 +160,9 @@ public class UserServiceImpl implements UserDetailsService {
         userItem.setEmail(userUpdateInfo.getEmail());
         userItem.setDateOfBirth(userUpdateInfo.getBirthday());
         userRepository.save(userItem);
-        return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
-                String.format("Пользователь %s обновлен", userItem.getEmail())
-        ));
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK,
+                String.format("Пользователь %s обновлен", userItem.getEmail()), userItem.getId().toString()
+        );
     }
 
     public ResponseEntity<?> changePassword(@Valid ChangePassword changePassword) {
@@ -161,8 +173,45 @@ public class UserServiceImpl implements UserDetailsService {
         }
         userItem.setPassword(passwordEncoder.encode(changePassword.getNewPassword()));
         userRepository.save(userItem);
-        return ResponseEntity.ok(new RegistrationResponse(HttpStatus.OK.value(),
-                String.format("Пароль %s обновлен", userItem.getEmail())
-        ));
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK,
+                String.format("Пароль %s обновлен", userItem.getEmail()), userItem.getId().toString()
+        );
+    }
+
+    public ResponseEntity<byte[]> getAvatar() throws IOException {
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+        Optional<String> userAvatarImage = userRepository.findAvatarCode(userItem.getEmail());
+        String defaultImage = settingsService.getDefaultAvatar();
+        byte[] imageFromS3;
+        if (userAvatarImage.isEmpty()) {
+            imageFromS3 = storage.downloadFileFromS3(defaultImage);
+        } else {
+            imageFromS3 = storage.downloadFileFromS3(userAvatarImage.get());
+        }
+        InputStream targetStream = new ByteArrayInputStream(imageFromS3);
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        return new ResponseEntity<byte[]>(IOUtils.toByteArray(targetStream), headers, HttpStatus.CREATED);
+    }
+
+    public ResponseEntity<?> loadAvatar(MultipartFile file, String nameFile) {
+        System.out.println(file);
+        System.out.println(file.getSize());
+        System.out.println(file.getContentType());
+        System.out.println(file.isEmpty());
+        System.out.println(file.getName());
+        System.out.println(nameFile);
+        Authentication contextUser = SecurityContextHolder.getContext().getAuthentication();
+        User userItem = userRepository.findCheckedUserByEmail(contextUser.getPrincipal().toString());
+
+        storage.uploadFileToS3(nameFile, file);
+        userItem.setAvatarImage(nameFile);
+        userRepository.save(userItem);
+
+
+        return responseEntityAppResponse.getAppResponse(HttpStatus.OK,
+                "Аватар загружен", userItem.getId().toString()
+        );
     }
 }

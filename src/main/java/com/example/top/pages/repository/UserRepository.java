@@ -20,4 +20,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query(value = "select * from users u where u.\"name\" = :name", nativeQuery = true)
     Optional<User> findUserByName(String name);
+
+    @Query(value = "select u.avatar_image from users u where u.email = :email", nativeQuery = true)
+    Optional<String> findAvatarCode(String email);
 }
